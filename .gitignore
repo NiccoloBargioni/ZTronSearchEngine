@@ -1,0 +1,19 @@
+# SwiftPM and Xcode build products, in the package and in the packages under Adapters/ and ParityHost/.
+.build/
+.build-*/
+.swiftpm/
+.derived/
+DerivedData/
+*.xcresult
+*.xcuserstate
+xcuserdata/
+
+# Per-cell results of a parity run. The summaries next to them are kept.
+ParityHost/Results/ios-*/
+
+# Model files are fetched or converted, never committed.
+*.mlmodelc/
+*.mlpackage/
+*.safetensors
+
+.DS_Store

@@ -1,0 +1,94 @@
+# UI parity gate (specification sections 12.5, 15.7 and 16).
+#
+# Three jobs:
+#   drift     - the generated metrics and asset catalog still match ParityHost/Samples.
+#   sample    - re-samples UIKit on every runnable iOS version and fails when a value moved,
+#               which is how a new iOS release shows up.
+#   matrix    - runs the parity matrix, one job per iOS version and device, and fails when a
+#               cell is outside the thresholds of section 15.7.
+#
+# The matrix needs simulator runtimes for iOS 15.5, 16.4, 17.5, the latest 18.x and the current
+# beta. A runner whose macOS cannot boot one of them reports those cells as not runnable (the
+# result files say why) and the job fails, so a gap in the matrix is never mistaken for a pass.
+
+name: UI parity
+
+on:
+  pull_request:
+    paths:
+      - "Sources/ZTronSearchEngineUI/**"
+      - "ParityHost/**"
+      - "Scripts/generate_ui_assets.py"
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: parity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  drift:
+    name: Generated assets match the samples
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the generated metrics and colors
+        run: python3 Scripts/generate_ui_assets.py --check
+
+  sample:
+    name: Re-sample UIKit
+    runs-on: macos-latest
+    needs: drift
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sample every runnable iOS version
+        run: ParityHost/Tools/sample.sh
+      - name: Regenerate and compare
+        run: |
+          python3 Scripts/generate_ui_assets.py
+          git diff --exit-code -- Sources/ZTronSearchEngineUI/Resources/Colors.xcassets \
+            Sources/ZTronSearchEngineUI/ZTronSearchFieldMetrics+Sampled.swift
+      - name: Keep the samples
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: samples
+          path: ParityHost/Samples
+
+  matrix:
+    name: Parity ${{ matrix.os }} / ${{ matrix.device }}
+    runs-on: macos-latest
+    needs: drift
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["15.5", "16.4", "17.5", "18.6", "27.0"]
+        device:
+          - "iPhone SE (3rd generation)"
+          - "iPhone 15"
+          - "iPhone 15 Pro Max"
+          - "iPad (10th generation)"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Comparators (package tests)
+        run: |
+          cd ParityHost
+          xcodebuild test -scheme ZTronSearchEngineUIParity \
+            -destination "platform=iOS Simulator,name=iPhone 15" \
+            -derivedDataPath .derived/package
+      - name: Run the matrix
+        run: |
+          ParityHost/Tools/run-matrix.sh --os "${{ matrix.os }}" --devices "${{ matrix.device }}" \
+            --results "ParityHost/Results" --record-reference
+      - name: Gate
+        run: python3 ParityHost/Tools/gate.py ParityHost/Results --os "${{ matrix.os }}" --device "${{ matrix.device }}"
+      - name: Keep the results and the reference snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-${{ matrix.os }}-${{ strategy.job-index }}
+          path: |
+            ParityHost/Results
+            ParityHost/ReferenceSnapshots

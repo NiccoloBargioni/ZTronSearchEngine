@@ -1,0 +1,8 @@
+# What the conversion scripts import. coremltools needs macOS to run the converted model
+# (the scripts' verification step) and to compile it; conversion itself also runs on Linux.
+torch>=2.1
+transformers>=4.40
+tokenizers>=0.15
+coremltools>=7.2
+numpy
+sentencepiece

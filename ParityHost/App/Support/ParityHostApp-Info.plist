@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The host runs the matrix's right-to-left column in Arabic. An app is laid out right to
+	     left only in a language it declares, so Arabic is declared here; everything else in
+	     the Info.plist is generated from the target's build settings. -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>ar</string>
+	</array>
+</dict>
+</plist>

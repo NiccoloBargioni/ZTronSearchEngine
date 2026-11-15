@@ -1,0 +1,89 @@
+# Package tests (specification section 16): async XCTest on the iOS 15 floor, Thread Sanitizer
+# on, relevance tests that fail the build below the section 15 gates, and the quality targets
+# that need no model.
+#
+# What this workflow cannot settle: the budgets of section 15 are p95 values on the reference
+# device (iPhone 6s, iOS 15.8). The performance job asserts each budget divided by how much
+# slower that device is than the runner, which is necessary for the gate and not sufficient.
+# The adapter and UI parity suites have workflows of their own.
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Unit tests
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: swift --version
+      - name: Test
+        run: swift test
+
+  thread-sanitizer:
+    name: Thread Sanitizer
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test under Thread Sanitizer
+        run: swift test --sanitize=thread
+
+  quality-targets:
+    name: Section 15 targets (release build)
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Latency, memory, small contexts and database sources at 100,000 items
+        run: swift test -c release -Xswiftc -enable-testing --filter PerformanceTests
+      - name: Relevance gates over the golden set among 100,000 distractors
+        run: swift test -c release -Xswiftc -enable-testing --filter RelevanceTests
+        env:
+          ZTRON_FULL_CORPUS: "1"
+      - name: HNSW recall and latency at 100,000 vectors
+        run: swift test -c release -Xswiftc -enable-testing --filter ZTronSearchEngineSemanticTests
+        env:
+          ZTRON_SEMANTIC_LARGE: "1"
+
+  ios:
+    name: iOS ${{ matrix.os }}
+    runs-on: macos-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        # The floor and the current release. A runner without the runtime fails the job rather
+        # than skip it.
+        os: ["15.5", "18.6"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test on the simulator
+        run: |
+          xcodebuild test -scheme ZTronSearchEngine-Package \
+            -destination "platform=iOS Simulator,name=iPhone SE (3rd generation),OS=${{ matrix.os }}" \
+            -derivedDataPath .build/xcode
+
+  mlx-runtime:
+    name: ZTronSearchEngineMLX
+    runs-on: macos-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: Adapters/ZTronSearchEngineMLX
+    steps:
+      - uses: actions/checkout@v4
+      # The native build system skips the Metal shaders, which need the Metal toolchain
+      # component. The tests that generate with real weights skip themselves without
+      # ZTRON_QWEN3_DIR.
+      - name: Test
+        run: swift test --build-system native

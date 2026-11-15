@@ -1,0 +1,63 @@
+# Adapter integration tests (specification section 16, "Adapter integration", and package 32).
+#
+# The adapter is a package of its own with its own test target, the only one that depends on
+# SQLite.swift.
+#
+# The runner's Xcode has to ship Swift 6.1 or later: SQLite.swift declares
+# `swift-tools-version: 6.1` from 0.16 on.
+name: Adapter tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Adapters/ZTronSearchEngineSQLite/**"
+      - "Sources/ZTronSearchEngine/**"
+      - "Package.swift"
+      - ".github/workflows/adapter-tests.yml"
+  pull_request:
+    paths:
+      - "Adapters/ZTronSearchEngineSQLite/**"
+      - "Sources/ZTronSearchEngine/**"
+      - "Package.swift"
+      - ".github/workflows/adapter-tests.yml"
+
+concurrency:
+  group: adapter-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sqlite-adapter:
+    name: ZTronSearchEngineSQLite (SQLite.swift ${{ matrix.sqlite-swift }})
+    runs-on: macos-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        # The version the package resolves by itself, and the oldest one the specification
+        # allows (0.16+).
+        sqlite-swift: [resolved, "0.16.0"]
+    defaults:
+      run:
+        working-directory: Adapters/ZTronSearchEngineSQLite
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: swift --version
+
+      - name: Resolve dependencies
+        run: swift package resolve
+
+      - name: Pin SQLite.swift ${{ matrix.sqlite-swift }}
+        if: matrix.sqlite-swift != 'resolved'
+        run: swift package resolve SQLite.swift --version ${{ matrix.sqlite-swift }}
+
+      - name: Test
+        run: swift test
+
+      # The specification asks for Thread Sanitizer in CI. The adapter wraps a connection that
+      # is not thread-safe behind one serial queue, which is exactly what this run checks.
+      - name: Test under Thread Sanitizer
+        run: swift test --sanitize=thread
