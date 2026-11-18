@@ -1,0 +1,2744 @@
+
+=== PAGE 1 ===
+ZTronSearchEngine — Package
+Specification
+​Nov 5, 2026 · ​@Nick
+1. Scope and goals
+ZTronSearchEngine is a Swift package for fully offline, typo-tolerant, multilingual search
+over heterogeneous items, plus a SwiftUI search field with native search tokens. It targets
+an iOS 15.0 deployment floor, Swift 6 strict concurrency, and must stay fast on an iPhone
+6s.
+Goals:
+Fully offline: no network at query time; indexes and item vectors ship with the app or
+are built at sync time.
+One engine for tools, tips, maps, games and captioned images, with kind-aware
+ranking; every hit reports which class it came from. The host decides the search
+context programmatically: independent, disjoint contexts with their own schema,
+from the whole catalog down to a 20-item picker (section 9.1). Items may live in
+memory or in a SQLite database reached only through a host-injected boundary, with
+string expressions that hold either the text itself or a localization key (section 9.2).
+Semantic and cross-language retrieval through a shared multilingual embedding
+space.
+Typo tolerance with bounded edit distance.
+Internationalized content: the engine indexes and matches localized values whenever
+an item provides them, and falls back to base values otherwise.
+Throttled, cancellable search that never publishes stale results.
+Testable and memory-conscious on a 2 GB device, with grounded chat over the
+corpus through a local LLM on devices that can run one, reached only through host-
+injected boundaries (section 14).
+Non-goals:
+Online or server-side search, and cloud LLMs.
+A cross-encoder reranker or a local LLM on the reference device; devices that pass
+the gates in sections 7.4 and 14.4 run them.
+Pixel-level image understanding: images are searched through caption, alt text, tags
+and OCR text.
+Personalization logic: the engine exposes a hook only.
+ZTronSearchEngine — Package Specification
+Page 1 of 58
+
+=== PAGE 2 ===
+List, row, transcript or chat views: the package ships the search field, observable
+models and attachment modifiers; hosts own every other layout (section 13.1).
+Reference device for every target in this spec: iPhone 6s (A9, 2 GB RAM, no Neural
+Engine), iOS 15.8, 100,000 indexed items, Release build.
+2. Package layout
+One SwiftPM package, three library products, with UIKit confined to the UI product.
+swift-tools-version: 6.0 , platforms: [.iOS(.v15)] , swiftLanguageModes: [.v6] .
+Product
+Depends on
+Frameworks
+Contents
+ZTronSearchEngine (core)
+none
+Foundation,
+NaturalLanguage,
+Accelerate
+Contracts, SearchSchema ( Kind +
+Filter ), SearchDocument ,
+projector, normalizer and tokenizer,
+SearchContext with the scan and
+indexed strategies, ScanIndex , the
+SearchDatabase boundaries,
+SearchTableSource and
+LocalizedStringResolving
+(section 9.2), BM25F index actor,
+fuzzy channel, weighted RRF,
+RankingProfile ,
+SearchService<Schema> , index
+persistence, the ZTronSearch
+facade, the ModelAssetProviding
+and LocalLanguageModel
+boundaries, ChatService<Schema>
+ZTronSearchEngineSemantic
+core
+CoreML,
+Accelerate
+EmbeddingProvider protocol, Core
+ML adapter, INT8 vector store, HNSW
+index actor, Reranking protocol,
+Core ML cross-encoder adapter,
+calibration gate
+ZTronSearchEngine — Package Specification
+Page 2 of 58
+
+=== PAGE 3 ===
+Dependency policy:
+No third-party packages in core or UI. SQLite.swift is never imported either: the host,
+or the separate reference adapter, conforms its facade to the SearchDatabase
+boundary and injects it, connection opening and transactions included (section 9.2).
+ZTronSearchEngineUI never imports UIKit: no UIViewRepresentable , no UIKit class,
+no UIKit color or font. The two SwiftUI modifiers whose parameters are UIKit enums
+( keyboardType , textContentType ) are wrapped by package enums, so hosts never
+see a UIKit type either. A lint step fails the build on import UIKit in that product.
+Semantic may vendor a C HNSW implementation behind a Swift actor. That wrapper is
+the only place @unchecked Sendable is allowed, and it must carry a doc comment
+proving the invariant.
+Product
+Depends on
+Frameworks
+Contents
+ZTronSearchEngineUI
+core
+(Semantic
+injected
+through a
+protocol,
+never
+imported)
+SwiftUI only,
+never UIKit
+ZTronSearchField<Schema> (pure
+SwiftUI clone of
+UISearchTextField ),
+ZTronSearchToken<Schema> , the
+observable models
+ZTronSearchResultsModel<Schema> ,
+ZTronSuggestionsModel<Schema>
+and ZTronChatModel<Schema> , the
+attachment modifiers zTronSearch ,
+zTronResults ,
+zTronLoadsNextPage ,
+zTronSuggestions and zTronChat ,
+the isZTronSearching environment
+value, an asset catalog of sampled
+UIKit colors. No list, row or chat view
+ships
+ZTronSearchEngineMLX
+(separate package, iOS 17 and
+macOS 14)
+core, mlx-
+swift, mlx-
+swift-lm
+Metal, Accelerate
+MLXLanguageModel:
+LocalLanguageModel , the Qwen3
+asset descriptor, chat-template
+application, calibration (section 14)
+ZTronSearchEngineSQLite
+(reference adapter; separate
+package or host code)
+core,
+SQLite.swift
+0.16+
+SQLite3
+SQLiteSearchDatabase:
+SearchDatabase over Connection ,
+Expression<String> rendering to
+SearchSQL , transactions, update and
+commit hooks, a Bundle -backed
+LocalizedStringResolving
+(section 9.2)
+ZTronSearchEngineUIParity
+(test host, never shipped)
+UI
+SwiftUI, UIKit
+The UIKit reference field, the shared
+scenario scripts, snapshot, metric,
+event-log and accessibility
+comparators (section 12.5)
+ZTronSearchEngine — Package Specification
+Page 3 of 58
+
+=== PAGE 4 ===
+The MLX runtime is a separate package, so mlx-swift's iOS 17 floor never raises this
+package's iOS 15 floor; core only declares the boundaries it implements.
+ZTronAssetKit is never imported here: the host, or a thin bridge package, implements
+ModelAssetProviding over it and injects it through the ZTronSearch facade.
+Core compiles on macOS for fast unit tests; only the UI product and the parity host
+need a simulator or device.
+Public API is Swift-only and Sendable throughout; no Objective-C exposure.
+Test targets mirror the products: ZTronSearchEngineTests ,
+ZTronSearchEngineSemanticTests , ZTronSearchEngineUITests , plus a shared
+ZTronSearchFixtures target holding the golden query set and a 100k-item synthetic
+corpus generator.
+3. Core principle: evidence versus weight
+A Searchable provides evidence; the search engine decides weight. Everything beyond
+identity and text is an optional capability, and everything about weight lives in
+RankingProfile and the signal providers the host injects.
+The domain object must not own:
+BM25 or semantic scores
+final ranking weights or popularity boosts
+query-dependent relevance
+index implementation details, including field weights, vector format and persistence
+layout
+Consequences that bind the design: domain types never import the engine's index types;
+the projection (section 6) is the only engine-side view of an item; and ranking can be
+retuned by swapping a RankingProfile without touching a single domain type.
+4. Domain contracts
+Three members are required, identity, kind and text; every other capability is an optional
+protocol the engine detects by conformance at projection time.
+ZTronSearchEngine — Package Specification
+Page 4 of 58
+
+=== PAGE 5 ===
+public struct SearchableID: Hashable, Sendable, Identifiable, Codable {
+    public let rawValue: String
+    public init(_ rawValue: String)
+    public var id: String { rawValue }
+}
+public protocol SearchItemKind: Hashable, Sendable, Codable, RawRepresentable 
+where RawValue == String {}
+public protocol Searchable<Kind>: Sendable {          // primary associated 
+type
+    associatedtype Kind: SearchItemKind
+    var searchID: SearchableID { get }   // stable identity; unique across 
+all kinds in one engine
+    var searchKind: Kind { get }         // which class the item is; every 
+hit reports it
+    var searchText: String { get }       // canonical text the engine 
+tokenizes and indexes
+}
+Optional capabilities:
+public protocol TitledSearchable: Searchable     { var searchTitle: String { 
+get } }
+public protocol KeywordSearchable: Searchable    { var searchKeywords: 
+[String] { get } }
+public protocol TemporalSearchable: Searchable   { var createdAt: Date { get 
+}; var updatedAt: Date { get } }
+public protocol FilterableSearchable<Kind, Filter>: Searchable {   // primary 
+associated types
+    associatedtype Filter: SearchFilter                                // the 
+host's filter enum, section 4.1
+    var searchFilters: Set<Filter> { get }
+}
+public protocol EmbeddableSearchable: Searchable {
+    var embeddingText: String { get }    // deterministic composition, see 
+section 7
+    var embedding: [Float]? { get }      // nil when the vector ships in the 
+vector store
+}
+public protocol LocalizedSearchable: Searchable {
+    var searchLanguage: String? { get }                            // BCP 47 
+tag of the base surface; nil = unknown
+ZTronSearchEngine — Package Specification
+Page 5 of 58
+
+=== PAGE 6 ===
+    var searchLocalizations: [String: SearchLocalization] { get }  // keyed 
+by BCP 47 tag, e.g. "it", "de-CH"
+}
+public struct SearchLocalization: Sendable, Hashable, Codable {
+    public var title: String?
+    public var text: String?
+    public var keywords: [String]
+    public var caption: String?
+}
+Capability matrix by item type:
+Rules:
+All values are resolved display strings. The engine never performs bundle or
+String(localized:) lookups, so core stays bundle-free and tests stay deterministic;
+a string field that is a localization key is resolved through the host-injected
+LocalizedStringResolving boundary (section 9.2), never by core itself.
+searchFilters keys and values are canonical identifiers (ASCII keys, ISO codes),
+never localized labels; the index persists only those two strings.
+searchKind is required and never defaulted: the engine refuses to guess a class.
+SearchableID must be unique across kinds within one engine; a collision is a debug
+assertion.
+Images are searchable only through text (caption, alt text, tags, OCR); the engine
+never reads pixels.
+Item
+type
+Required
+Optional capabilities
+Tool
+Searchable (id, kind .tool ,
+text)
+Titled , Keyword , Filterable , Localized
+Tip
+Searchable (id, kind .tip ,
+text)
+Titled , Temporal , Embeddable ,
+Localized
+Map
+Searchable (id, kind .map ,
+text)
+Titled , Filterable , Localized
+Game
+Searchable (id, kind .game ,
+text)
+Titled , Keyword , Filterable , Localized
+Image
+Searchable (id, kind .image ,
+text)
+Titled , Keyword , Embeddable , Localized
+(caption, alt text, tags, optional OCR text)
+ZTronSearchEngine — Package Specification
+Page 6 of 58
+
+=== PAGE 7 ===
+4.1 Typed kinds and filters
+The engine is generic over one SearchSchema the host declares: its Kind enum names
+the classes of items (map, tip, tool, game, image) and its Filter enum names the filters.
+Every hit, query, token and snapshot speaks in those two enums, checked at compile time,
+and the string design from the original document survives as the fallback schema.
+public protocol SearchSchema: Sendable {
+    associatedtype Kind: SearchItemKind
+    associatedtype Filter: SearchFilter
+}
+public protocol SearchFilter: Hashable, Sendable, Codable {
+    var key: String { get }                 // dimension; stable across app 
+versions; persisted in the index
+    var value: String { get }               // canonical, locale-independent 
+value; persisted in the index
+    init?(key: String, value: String)       // rebuild from an index record; 
+nil = unknown to this build
+}
+/// Host schema. SearchService<CatalogSchema> accepts only these kinds and 
+filters.
+enum CatalogKind: String, SearchItemKind { case map, tip, tool, game, image }
+enum CatalogFilter: SearchFilter {
+    case platform(Platform)                   // String-backed enums give key 
+and value for free
+    case category(Category)
+    case region(ISOCountry)
+    case string(key: String, value: String)   // escape hatch for ad-hoc 
+filters
+}
+enum CatalogSchema: SearchSchema {
+    typealias Kind = CatalogKind
+    typealias Filter = CatalogFilter
+}
+/// Fallback schema; equivalent to the original string design.
+public struct ZTronStringKind: SearchItemKind {
+    public let rawValue: String
+    public init(rawValue: String)
+}
+public enum ZTronStringFilter: SearchFilter {
+    case string(key: String, value: String)
+ZTronSearchEngine — Package Specification
+Page 7 of 58
+
+=== PAGE 8 ===
+}
+public enum ZTronStringSchema: SearchSchema {
+    public typealias Kind = ZTronStringKind
+    public typealias Filter = ZTronStringFilter
+}
+public typealias ZTronSearchService = SearchService<ZTronStringSchema>
+Rules:
+One schema per engine instance, fixed at construction: SearchService<Schema> ,
+SearchQuery<Schema> , SearchHit<Schema.Kind> , ZTronSearchToken<Schema> .
+Heterogeneous item types share the schema; each item declares its kind and the
+subset of filter cases it uses.
+Only raw strings are persisted: the kind as Kind.rawValue , filters as FilterRecord .
+Typed cases are rebuilt with Kind(rawValue:) and Filter.init?(key:value:) at
+query time. A document whose kind is unknown to the running build never surfaces as
+a hit, and unknown filter records are ignored; both are logged, so an index written by
+another app version never corrupts the enums.
+Matching is equality on the record: AND across keys, OR among values of the same
+key. {platform: ios, platform: mac, category: maps} means (ios or mac) and
+maps.
+The fallback filter carries both key and value because a single string would collapse
+every ad-hoc filter into one dimension and lose those semantics.
+Filters are never localized, never fuzzed and never prefix-matched; a token's display
+label comes from the host.
+This version matches on equality only; range filters (dates, numbers) would be a later
+SearchRangeFilter protocol, not a new enum case.
+5. Localization policy
+When an item provides localized values, the engine indexes and matches those values for
+the active locale; the base surface is only a fallback. This is normative for every channel.
+1. Active locale. SearchEngineConfiguration.locale defaults to Locale.current and
+is resolved to a BCP 47 tag once per index generation.
+2. Field resolution. For each surface (title, text, keywords, caption) the projection takes
+the first non-empty value in this order: exact tag match ( it-IT ), language match
+( it ), base surface. Matching uses
+Bundle.preferredLocalizations(from:forPreferences:) so fallbacks follow
+Apple's rules.
+ZTronSearchEngine — Package Specification
+Page 8 of 58
+
+=== PAGE 9 ===
+3. Secondary languages. Surfaces for the other entries in Locale.preferredLanguages
+are indexed into a low-weight localizedAlt field, so a query typed in a second
+installed language still hits lexically. secondaryLanguages is .preferredLanguages
+by default; .all and .none are available.
+4. Normalization is per field language: NFKC, then folding(options:
+[.caseInsensitive, .diacriticInsensitive, .widthInsensitive], locale:) .
+The original string is kept for highlighting.
+5. Tokenization uses NLTokenizer(unit: .word) with setLanguage(_:) from the
+field's tag when known. Fields in scripts without word spacing (CJK, Thai) also emit
+character bigrams so prefix matching works.
+6. Fuzzy and prefix matching run over the normalized localized tokens, never over the
+base surface alone.
+7. Locale change. NSLocale.currentLocaleDidChangeNotification or an explicit
+setLocale(_:) rebuilds the projection and lexical index in the background under a
+new generation; in-flight and new searches keep using the old index until the swap.
+Budget: 2 s for 100k items.
+8. Semantic. Item vectors are computed from the base-language composition at build or
+sync time, and the multilingual model carries cross-language matching. A pipeline may
+ship per-locale vector sets; the engine then loads the active-locale set with base
+fallback and never re-embeds items on device.
+9. Filters, dates and numbers are compared in canonical form, never through localized
+formatting.
+10. Query language is not required. NLLanguageRecognizer may hint the normalization
+locale for queries of 8 or more characters; otherwise the active locale applies.
+11. Hits report matchedLanguage and matchedField , so the UI can highlight the localized
+surface that actually matched.
+12. Database fields (section 9.2). A string field declared as a localization key is resolved
+through LocalizedStringResolving in the same order (exact tag, language, base)
+and feeds localizedAlt the same way; a literal field carries the language tag the
+host declared. The resolver is the only place a bundle is consulted, and it is injected by
+the host.
+UI strings follow the same rule: the host passes a localized placeholder, token labels are
+localized display text wrapped around canonical values, and the UI product ships its own
+Localizable.xcstrings in Bundle.module for the few built-in strings (Cancel, Clear,
+Searching, No results).
+ZTronSearchEngine — Package Specification
+Page 9 of 58
+
+=== PAGE 10 ===
+6. Search projection
+SearchDocument is the engine-side read model: built once at index time from a
+Searchable and the active locale, compact, denormalized for retrieval, and versioned
+independently of the domain model.
+public struct SearchDocument: Sendable, Codable, Identifiable {
+    public static let projectionVersion = 1
+    public let id: SearchableID
+    public let kind: String             // Kind.rawValue, section 4.1
+    public let language: String?        // tag of the surface that won 
+resolution (section 5)
+    public let title: String?
+    public let text: String
+    public let keywords: [String]
+    public let caption: String?
+    public let ocrText: String?
+    public let localizedAlt: [String]   // secondary-language surfaces, low 
+weight
+    public let filters: [FilterRecord]  // key and value strings only, 
+section 4.1
+    public let updatedAt: Date?
+}
+public struct FilterRecord: Hashable, Sendable, Codable {
+    public let key: String
+    public let value: String
+}
+Rules:
+SearchProjector.project(_:locale:) is a pure function; the same item and locale
+always yield the same document.
+Persisted index files record projectionVersion , the normalizer version and the
+embedding model id. Any mismatch discards the file and rebuilds.
+The projection is the only type the index actors accept; domain objects never cross
+into the index.
+7. Retrieval channels
+Three channels produce independent ranked lists; only the fusion layer (section 8)
+combines them.
+ZTronSearchEngine — Package Specification
+Page 10 of 58
+
+=== PAGE 11 ===
+7.1 Lexical (BM25F)
+Field weights are defaults in RankingProfile.default , chosen from the design doc's
+ranges:
+k1 = 1.2. Prefix expansion of the final token uses a sorted vocabulary and is capped at 32
+terms. Tokens that contain digits or - , _ , . (IDs, URLs, model numbers) match exactly
+only. Postings are varint-compressed per field with per-field document lengths.
+Channel
+Algorithm
+Purpose
+Runs
+Lexical
+Field-weighted BM25F
+with prefix matching on
+the last token
+Exact names,
+identifiers, rare terms
+Every debounced
+keystroke
+Fuzzy
+lexical
+Character-trigram
+candidate generation
+over the vocabulary,
+verified by bounded
+Damerau-Levenshtein
+Typos and near-miss
+spellings
+With lexical, once the
+longest token has 3 or
+more characters
+Semantic
+Multilingual sentence
+embeddings + HNSW
+Synonyms,
+paraphrases, cross-
+language queries
+After the semantic
+pause or on submit
+Rerank
+Cross-encoder over the
+top 16 fused hits
+Fine ordering of the
+head of the list
+After the semantic
+snapshot, only on
+devices that pass the
+calibration gate (7.4)
+Field
+Weight
+b
+title
+8.0
+0.5
+keywords
+4.0
+0.3
+caption
+2.5
+0.75
+text
+1.0
+0.75
+localizedAlt
+0.5
+0.75
+ocrText
+0.5
+0.75
+ZTronSearchEngine — Package Specification
+Page 11 of 58
+
+=== PAGE 12 ===
+7.2 Fuzzy
+Two stages: generate correction candidates, then rewrite or augment the query and
+retrieve normally.
+Allowed edits by normalized token length: 1 to 2 characters none, 3 to 5 characters
+one edit, 6 or more two edits.
+No expansion for IDs, URLs, model numbers, filter values, quoted phrases or token
+chips.
+At most 8 candidates per token, ranked by edit distance then document frequency; a
+candidate's term weight is 1 / (1 + edits).
+Distance is computed on normalized Unicode scalars after the folding in section 5, so
+résumé and resume are the same token before fuzzing.
+The channel operates on the vocabulary (200k terms), never on documents, which
+bounds both time and memory.
+7.3 Semantic
+Item vectors come from one deterministic composition, type + title + tags +
+short description + caption , encoded once at build or sync time with the same
+pinned model used for queries. The vector store records model id, dimensions and
+quantization.
+At query time only the query is encoded; HNSW returns the top 50 with M = 16 and
+efSearch = 64.
+The model is a shared multilingual space exported to Core ML with 8-bit weights, at
+most 384 dimensions and a 128-token input window, verified to load on iOS 15.8. A9
+has no Neural Engine, so every budget assumes CPU inference.
+EmbeddingProvider is a protocol, so the model is swappable and tests use a
+deterministic fake.
+Distance kernels use Accelerate or simd ; no per-element Swift loops in the hot path.
+7.4 Cross-encoder rerank, capable devices only
+A cross-encoder scores each (query, candidate) pair with a full transformer pass, so its
+cost grows with the candidate count and nothing can be precomputed. It runs wherever a
+calibration pass proves it fits the budget, and never on the reference device.
+Capability gate, SearchEngineConfiguration.reranking , default .auto :
+.auto runs a one-time calibration on first use: rerank 16 synthetic pairs with the
+production model and enable only when the p95 per pair is 15 ms or less, physical
+memory is at least 3 GB and no memory warning occurred in the last 10 minutes. The
+ZTronSearchEngine — Package Specification
+Page 12 of 58
+
+=== PAGE 13 ===
+verdict is persisted and recomputed after an app or OS update.
+.on forces the stage for QA builds; .off never loads the model.
+The A9 fails calibration by design (no Neural Engine, 2 GB). The gate is expected to
+pass from A12 onward, where Core ML can schedule the model on the Neural Engine,
+but the decision is always measured, never read off the chip name.
+Stage:
+Input: the top 16 fused hits of the semantic snapshot (configurable, at most 32), each
+paired with the query and the hit's localized surface (title plus caption, or the first 64
+tokens of text), truncated to 128 tokens per pair, scored in one batched call.
+Model: a multilingual cross-encoder exported to Core ML with 8-bit weights, 6 layers
+or fewer, 60 MB or less after vocabulary pruning.
+Output: final score = 0.7 × normalized cross-encoder score + 0.3 × normalized RRF
+score ( RankingProfile.rerank.blend ), so one confident pass cannot push an exact-
+title hit out of the head.
+Only the reranked head is reordered; hits below position 16 keep their fused order.
+Published as a third snapshot ( phase: .reranked , isFinal: true ); on these
+devices the semantic snapshot is no longer final.
+Skipped, with degraded set, when the semantic phase was skipped, when the query
+is tokens only, or when the 400 ms hard cap is breached. Three consecutive breaches
+disable the stage for the session and force recalibration at the next launch.
+The reranker loads lazily and unloads with the embedding model after 60 s idle; both
+models are resident at once only on devices that passed calibration (section 15.2).
+8. Fusion and ranking
+Channels are combined by weighted Reciprocal Rank Fusion, never by adding raw scores.
+s(d) = \sum_{c \in C} w_c \cdot \frac{1}{k + r_c(d)}
+r_c(d) is the 1-based rank of document d in channel c ; a channel that did not return d
+contributes 0. k = 60. Default channel weights: lexical 1.0, fuzzy 0.6, semantic 0.8. Weights
+are tuned only against relevance judgments or interaction data, never by hand on
+anecdotes.
+Ranking ownership:
+Signal
+Owner
+Title, caption, tags, category
+Domain item
+ZTronSearchEngine — Package Specification
+Page 13 of 58
+
+=== PAGE 14 ===
+The ranking profile combines everything the engine is allowed to weigh:
+public struct RankingProfile: Sendable {
+    public var fieldWeights: [SearchField: Double]
+    public var bm25: BM25Parameters                // k1, b per field
+    public var channelWeights: [SearchChannel: Double]
+    public var rrfK: Double = 60
+    public var kindBoosts: [String: Double]        // keyed by Kind.rawValue; 
+multiplicative, 1.0 neutral, clamped to 0.5...1.5
+    public var popularity: SignalSpec?             // log1p-scaled, adds at 
+most 15% of the top fused score
+    public var freshness: SignalSpec?              // exponential decay, 
+half-life in days
+    public var editorial: EditorialPolicy          // pins to the top, 
+suppressions
+    public var rerank: RerankSpec?                 // topN = 16, blend = 0.7; 
+applied only past the calibration gate
+    public static let `default`: RankingProfile
+}
+Rules:
+Filters and kind tokens are hard constraints applied before retrieval, AND across filter
+keys and OR among values of the same key; kindBoosts only reorder what survived
+them.
+Signal providers are optional, Sendable , synchronous, O(1) lookups by
+SearchableID , and must never block. A provider that throws is treated as absent for
+that query.
+Signal
+Owner
+Embedding
+Search pipeline (build or sync time)
+Popularity
+Analytics or behavior pipeline, via
+PopularityProvider
+Freshness
+Derived from updatedAt , only when
+TemporalSearchable is present
+Editorial boost or suppression
+Curation system, via EditorialProvider
+Query relevance
+Search engine
+User affinity
+Personalization layer, via
+PersonalizationProvider
+ZTronSearchEngine — Package Specification
+Page 14 of 58
+
+=== PAGE 15 ===
+Editorial pins apply after fusion and after any rerank, and are limited to 3 per query so
+they cannot hide organic results.
+Every hit carries its kind and which channels contributed, so relevance tests can
+assert why an item ranked.
+9. Engine API
+A query yields a stream of snapshots, each tagged with a generation, so the UI can show
+lexical results in milliseconds and refine them when the semantic channel lands.
+public struct SearchQuery<Schema: SearchSchema>: Sendable, Hashable {
+    public var text: String
+    public var tokens: [SearchQueryToken<Schema>]   // 
+.filter(Schema.Filter), .kind(Schema.Kind), .phrase(String)
+    public var filters: Set<Schema.Filter>          // hard constraints; 
+.filter tokens are merged in
+    public var kinds: Set<Schema.Kind>?             // nil = every kind; 
+.kind tokens are merged in
+    public var locale: Locale?                      // nil = engine's active 
+locale
+    public var limit: Int = 20
+    public var cursor: SearchCursor?
+    public init(text: String, tokens: [SearchQueryToken<Schema>] = [],
+                filters: Set<Schema.Filter> = [], kinds: Set<Schema.Kind>? = 
+nil)
+}
+public enum SearchPhase: Sendable { case lexical, semantic, reranked }
+public struct SearchHit<Kind: SearchItemKind>: Sendable, Identifiable, 
+Hashable {
+    public let id: SearchableID
+    public let kind: Kind                       // always a valid case; 
+unknown kinds never surface
+    public let score: Double
+    public let channels: Set<SearchChannel>     // which channels 
+contributed, .rerank included
+    public let matchedField: SearchField?
+    public let matchedLanguage: String?         // tag of the localized 
+surface that matched
+    public let highlights: [Range<String.Index>]
+}
+public struct SearchSnapshot<Schema: SearchSchema>: Sendable {
+    public let query: SearchQuery<Schema>
+ZTronSearchEngine — Package Specification
+Page 15 of 58
+
+=== PAGE 16 ===
+    public let generation: UInt64
+    public let phase: SearchPhase
+    public let hits: [SearchHit<Schema.Kind>]
+    public let nextCursor: SearchCursor?
+    public let degraded: Set<SearchChannel>     // channels skipped for 
+budget or memory reasons
+    public let isFinal: Bool
+    public var hitsByKind: [Schema.Kind: [SearchHit<Schema.Kind>]]   // same 
+hits, fused order kept inside each kind
+}
+public actor SearchService<Schema: SearchSchema> {
+    public init(index: LexicalIndex,
+                semantic: (any SemanticSearching)? = nil,
+                reranker: (any Reranking)? = nil,
+                profile: RankingProfile = .default,
+                signals: SignalProviders = .none,
+                configuration: SearchEngineConfiguration = .default)
+    public func index(_ items: [any Searchable<Schema.Kind>]) async   // 
+filters read from any FilterableSearchable<Schema.Kind, Schema.Filter>
+    public func results(for query: SearchQuery<Schema>) -> 
+AsyncStream<SearchSnapshot<Schema>>
+    public func page(after cursor: SearchCursor, generation: UInt64) async 
+throws -> SearchSnapshot<Schema>
+    public func suggestions(for prefix: String, limit: Int) async -> 
+[SearchSuggestion]
+    public func setLocale(_ locale: Locale) async
+}
+public actor LexicalIndex {
+    public func upsert(_ documents: [SearchDocument]) async
+    public func remove(_ ids: [SearchableID]) async
+    public func load(from url: URL) async throws   // memory-mapped, 
+versioned
+    public func save(to url: URL) async throws
+}
+Snapshot semantics:
+1. The first snapshot ( phase: .lexical ) carries lexical and fuzzy hits fused by RRF and
+arrives within the lexical budget.
+2. The second snapshot ( phase: .semantic ) re-fuses the cached lexical lists with the
+semantic list; it is skipped, with degraded set, when the query is shorter than 3
+characters, is a pure filter or ID, or the semantic budget is breached.
+ZTronSearchEngine — Package Specification
+Page 16 of 58
+
+=== PAGE 17 ===
+3. On devices past the calibration gate a third snapshot ( phase: .reranked ) reorders
+the top 16 of the second; it is skipped, with degraded set, whenever the second was
+skipped or the rerank cap is breached.
+4. isFinal is true on the last snapshot the device will produce for that query, so the UI
+never waits for a phase that will not come.
+5. Every hit's kind is a valid Schema.Kind : a document whose stored kind is unknown
+to the running build is dropped and logged, never surfaced as an untyped hit.
+hitsByKind partitions the same hits for sectioned layouts without changing the
+order inside a kind.
+6. An item whose Filter differs from Schema.Filter is a programmer error: a debug
+assertion, and its filters are dropped in release.
+7. Cancelling the consuming task terminates the stream and cancels the producer
+through onTermination .
+8. Paging continues the final snapshot's list; a cursor from a stale generation throws
+SearchError.staleGeneration .
+9. Indexing is incremental: upsert and remove take effect for the next query without a
+rebuild.
+9.1 Search contexts
+A search context is an independent, disjoint set of searchables with its own schema,
+index, ranking state and lifecycle; the catalog of maps, tips and tools is one context among
+many, not the context. The host creates contexts programmatically, down to a picker of 20
+or 40 entries, and the strategy adapts to the size, so a tiny context costs microseconds
+per query and never builds an inverted index.
+public struct SearchContext<Schema: SearchSchema>: Sendable {
+    public var id: SearchContextID
+    public var items: [any Searchable<Schema.Kind>]
+    public var locale: Locale?                        // nil = engine 
+default; a context may search in its own locale
+    public var strategy: SearchStrategy = .automatic
+    public init(id: SearchContextID, items: [any Searchable<Schema.Kind>],
+                locale: Locale? = nil, strategy: SearchStrategy = .automatic)
+}
+public enum SearchStrategy: Sendable {
+    case automatic     // scan up to 500 documents, indexed above
+    case scan          // linear, in memory, synchronous, no disk
+    case indexed       // BM25F inverted index, optional persistence, every 
+channel
+}
+ZTronSearchEngine — Package Specification
+Page 17 of 58
+
+=== PAGE 18 ===
+extension SearchService {
+    /// One service per context; ready on return, and the scan strategy 
+touches no disk.
+    public init(context: SearchContext<Schema>,
+                semantic: (any SemanticSearching)? = nil,
+                profile: RankingProfile = .default,
+                signals: SignalProviders = .none,
+                configuration: SearchEngineConfiguration = .default)
+    public func replace(items: [any Searchable<Schema.Kind>]) async   // 
+wholesale replacement; cheap at scan size
+    public var contextID: SearchContextID { get }
+}
+/// The scan strategy as a value type: synchronous, for use straight from 
+SwiftUI without an actor hop.
+public struct ScanIndex<Schema: SearchSchema>: Sendable {
+    public init(items: [any Searchable<Schema.Kind>], locale: Locale? = nil, 
+profile: RankingProfile = .default)
+    public func hits(for query: SearchQuery<Schema>) -> 
+[SearchHit<Schema.Kind>]   // lexical, fuzzy and fusion in one pass
+    public var count: Int { get }
+}
+Rules:
+1. Contexts are disjoint: no shared index, vocabulary, document-frequency statistics,
+signal providers or generation counters. Nothing retrieved in one context can appear
+in another, SearchableID only needs to be unique inside its context, and
+SearchSnapshot.contextID names the context that produced it.
+2. Each context has its own Schema : a settings picker can use SettingsSchema
+( .setting , .action ) while the catalog uses CatalogSchema . Field, tokens, models
+and modifiers are generic over Schema , so every exhaustive kind switch is per
+context.
+3. The scan strategy projects and tokenizes once at creation, keeps each document's
+normalized field tokens, and scores every document per query with the same BM25F
+formula, field weights, fuzzy limits and RRF as the indexed strategy, so the two
+strategies rank the same documents identically (a property test proves it). Fuzzy is a
+direct Damerau-Levenshtein against each token with a length pre-check, prefix
+matching is a direct prefix test, and nothing is built that a 40-item context would
+never use.
+ZTronSearchEngine — Package Specification
+Page 18 of 58
+
+=== PAGE 19 ===
+4. Scan contexts have no debounce and publish one final snapshot per query. Semantic
+runs only when the items carry precomputed vectors, then by brute-force dot
+product over the context, never HNSW; query encoding keeps its usual cost, so it
+stays behind the semantic pause.
+5. Localization, filters, kind tokens, the ranking profile and signal providers apply
+unchanged in every context, and a context may set its own locale.
+6. Contexts are cheap to create and discard: SearchContext is a value that can live in
+@State , the scan strategy never touches disk, and releasing the service frees
+everything. replace(items:) rebuilds a scan context in place; an indexed context
+persists under its own file keyed by contextID and projectionVersion .
+7. A screen may run several contexts at once, each with its own
+ZTronSearchResultsModel ; the .automatic threshold of 500 documents is per
+context, never per app.
+9.2 Database sources and string expressions
+A context can draw its searchables from a SQLite database as well as from memory: rows
+from any number of tables, each string field a string expression the host renders from its
+own query layer, holding either the text itself or a key into a strings catalog. Core never
+imports SQLite.swift. The host conforms the SQLite.swift facade to the boundary below
+and injects it, connection opening and transactions included; the only SQL core composes
+is the SELECT that reads the fields the host declared.
+// Boundaries. Core never imports SQLite.swift; the host conforms its facade 
+to these.
+public struct SearchSQL: Sendable, Hashable {             // a fragment the 
+host rendered from its own expression type
+    public var template: String                            // SQLite.swift: 
+Expression.template, Table.template
+    public var bindings: [SearchBindingValue]              // SQLite.swift: 
+Expression.bindings
+}
+public enum SearchBindingValue: Sendable, Hashable { case null, int(Int64), 
+real(Double), text(String), blob(Data) }
+public enum SearchDatabaseLocation: Sendable, Hashable { case file(URL, 
+readonly: Bool), inMemory, uri(String) }
+public protocol SearchDatabase: Sendable {                 // the host's 
+SQLite.swift facade conforms to this
+    func open(_ location: SearchDatabaseLocation) async throws -> any 
+SearchDatabaseConnection
+}
+ZTronSearchEngine — Package Specification
+Page 19 of 58
+
+=== PAGE 20 ===
+public protocol SearchDatabaseConnection: Sendable {
+    func read<T: Sendable>(_ body: @Sendable (any SearchDatabaseReader) 
+throws -> T) async throws -> T    // deferred read transaction: one 
+consistent snapshot
+    func write<T: Sendable>(_ body: @Sendable (any SearchDatabaseWriter) 
+throws -> T) async throws -> T   // commit on return, rollback on throw
+    func changes(in tables: Set<String>) -> AsyncStream<SearchDatabaseChange>  
+// host wires update and commit hooks; may stay silent
+    func close() async
+}
+public protocol SearchDatabaseReader {
+    func rows(_ statement: SearchSQL) throws -> AnySequence<SearchRow>
+    func scalar(_ statement: SearchSQL) throws -> SearchBindingValue?
+}
+public protocol SearchDatabaseWriter: SearchDatabaseReader {
+    func run(_ statement: SearchSQL) throws -> Int                      // 
+rows changed; used only for the engine's own index tables
+}
+public struct SearchRow: Sendable { public let values: [SearchBindingValue?] 
+}
+public struct SearchDatabaseChange: Sendable, Hashable {
+    public let table: String
+    public let rowIDs: Set<Int64>?                                        // 
+nil = unknown, the whole table is refreshed
+}
+// What to search. The host renders every expression from its own query 
+layer.
+public enum SearchStringEncoding: Sendable, Hashable {
+    case literal(language: String?)                                        // 
+the value is the text, with an optional BCP 47 tag
+    case localizedKey(table: String?, bundle: SearchBundleID)              // 
+the value is a key in a strings catalog, resolved per language
+    case perRow(isKey: SearchSQL, table: String?, bundle: SearchBundleID)  // 
+a boolean expression decides per row
+}
+public struct SearchStringField: Sendable, Hashable {
+    public var role: SearchField                         // .title, .text, 
+.keywords, .caption, .ocrText
+    public var expression: SearchSQL                     // from 
+Expression<String> or Expression<String?>
+    public var encoding: SearchStringEncoding
+}
+public struct SearchTableSource<Schema: SearchSchema>: Sendable {
+    public var table: SearchSQL                          // a table name or a 
+ZTronSearchEngine — Package Specification
+Page 20 of 58
+
+=== PAGE 21 ===
+sub-select
+    public var id: SearchSQL                             // unique within the 
+table; SearchableID is "<table>#<id>" unless the host maps it
+    public var kind: Schema.Kind                         // every row of this 
+source
+    public var fields: [SearchStringField]               // literal and 
+localized fields mixed freely
+    public var filters: [SearchFilterColumn]             // key plus 
+expression; rebuilt through Schema.Filter.init?(key:value:)
+    public var predicate: SearchSQL?                     // optional WHERE
+    public var updatedAt: SearchSQL?                     // optional; gives 
+rows TemporalSearchable semantics
+}
+public enum SearchSource<Schema: SearchSchema>: Sendable {
+    case memory([any Searchable<Schema.Kind>])
+    case database(any SearchDatabaseConnection, [SearchTableSource<Schema>])
+}
+extension SearchContext {                                // sources 
+generalize items; items stays as the one-source convenience
+    public var sources: [SearchSource<Schema>]
+    public var localizedStrings: (any LocalizedStringResolving)?   // 
+required when any field is a localized key
+    public var indexStorage: SearchIndexStorage          // .files(URL), the 
+default, or .database(tablePrefix:) through the write transaction
+}
+public protocol LocalizedStringResolving: Sendable {    // host: 
+Bundle.localizedString(forKey:value:table:) on the language bundle, cached
+    func string(forKey key: String, table: String?, bundle: SearchBundleID, 
+language: String) -> String?
+    func languages(bundle: SearchBundleID, table: String?) -> [String]
+}
+Rules:
+1. Core composes exactly one shape of SQL, SELECT <id>, <fields> FROM <table>
+WHERE <predicate> LIMIT 500 OFFSET n , from fragments the host rendered (for
+SQLite.swift, an Expression 's template and bindings), with identifiers quoted; it
+never writes DDL or DML against host tables.
+2. Each page is read inside one deferred read transaction, so a page is a consistent
+snapshot; WAL journaling is recommended when the host writes while the engine
+reads.
+3. Every row becomes a SearchDocument through the same projector as a memory item.
+Literal fields keep their declared language tag; localized keys are resolved through
+LocalizedStringResolving for the active locale with the section 5 fallback chain,
+ZTronSearchEngine — Package Specification
+Page 21 of 58
+
+=== PAGE 22 ===
+and the other preferred languages feed localizedAlt . An unresolved key indexes
+nothing for that field and is logged in debug; the raw key never enters the index.
+4. Sources mix freely inside one context: memory arrays and any number of tables yield
+one document set, one strategy (scan or indexed by total size) and one ranking, and
+typed filters work on rows because SearchFilterColumn values are rebuilt through
+Schema.Filter.init?(key:value:) . ID uniqueness across sources is the host's
+responsibility and is debug-asserted.
+5. Incremental updates come from the boundary's change stream when the host wires
+it: changes are batched per commit, changed rowids are re-read and upserted or
+removed, and a change without rowids refreshes its table. refresh() re-reads every
+source on demand.
+6. Index persistence may live inside the host database with .database(tablePrefix:) :
+the engine writes its own <prefix>_* tables through the boundary's write
+transaction and swaps generations atomically, so the index commits with the data at
+sync time. .files stays the default.
+7. The boundary is Sendable and serializes concurrent calls itself. A SQLite.swift
+Connection is wrapped by the adapter with a documented @unchecked Sendable ,
+the only one allowed outside core's HNSW wrapper, and the adapter never enters
+core.
+8. The reference adapter ( ZTronSearchEngineSQLite , a separate package or host code
+that depends on SQLite.swift) maps open to Connection with file, in-memory and
+read-only locations, read and write to transactions, changes to the update and
+commit hooks, and Expression<String> and Table to SearchSQL . FTS tables are
+not used: every source ranks through the engine's own BM25F so database and
+memory items score identically.
+10. Throttling and memory policy
+Search runs in two phases: a lexical phase on every debounced keystroke, and a semantic
+phase only after the typing pause or on submit. A new keystroke cancels both and starts
+fresh timers.
+ZTronSearchEngine — Package Specification
+Page 22 of 58
+
+=== PAGE 23 ===
+Snapshot 2 re-fuses the cached lexical and fuzzy lists with the semantic list; the numbers
+in the boxes are the p95 budgets from section 15. On devices past the calibration gate, the
+dashed rerank stage follows and publishes a third, final snapshot.
+Throttling policy:
+Rules:
+Never encode a query embedding on every keystroke.
+No cross-encoder reranker on the reference device; devices past the calibration gate
+run it once per query, after the semantic snapshot (section 7.4).
+Queries shorter than 3 characters, or made only of tokens, skip the semantic and
+rerank phases.
+search pipeline · 2 phases, 2 snapshots
+Channel
+Trigger
+Debounce
+Lexical
+Every keystroke
+120 ms (design doc: 100 to 150)
+Fuzzy
+With lexical, once the longest
+token has 3 or more characters
+None beyond lexical
+Semantic
+Typing pause, or immediately on
+submit
+300 ms (design doc: 250 to 400)
+Rerank
+After the semantic snapshot,
+devices past the calibration gate
+only
+None beyond semantic
+Suggestions
+Prefix of 2 or more characters
+Shares the lexical timer
+Scan contexts
+(section 9.1)
+Every keystroke, synchronously
+None: lexical and fuzzy in one
+pass, one final snapshot
+ZTronSearchEngine — Package Specification
+Page 23 of 58
+
+=== PAGE 24 ===
+Debounce timers use Task.sleep(nanoseconds:) ( Task.sleep(for:) needs iOS
+16); each keystroke cancels the pending task and starts a new one.
+Memory policy:
+Item vectors are INT8 scalar-quantized with at most 384 dimensions: 100k × 384
+bytes, about 38 MB, memory-mapped.
+Item vectors are precomputed at build or sync time; only the query is encoded at
+runtime.
+The embedding model loads lazily on the first semantic query and unloads after 60 s
+idle or on didReceiveMemoryWarningNotification . It shares memory with the
+reranker only on devices that passed calibration; on the reference device the two
+never coexist.
+Lexical index files are memory-mapped with .mappedIfSafe , so pages load on
+demand.
+Bounded work: at most 2,000 lexical candidates scored, 8 fuzzy candidates per token,
+50 HNSW neighbours, 600 entries in fusion, 16 pairs reranked and 200 hits kept for
+paging.
+11. Concurrency and liveness
+The package compiles in Swift 6 language mode, so complete concurrency checking is on
+and every public type is Sendable . The rules below are what the compiler cannot enforce.
+Rules:
+1. Mutable index and search state lives in actors: LexicalIndex , SemanticIndex ,
+SearchService . UI models are @MainActor .
+2. Structured tasks wherever a task's lifetime is scoped to a search; Task.detached
+only for index loading at .utility priority.
+3. A newer query cancels the prior task before any work starts on the new one.
+4. Cooperative cancellation: Task.sleep(nanoseconds:) for debounce,
+Task.checkCancellation() at least every 1,000 postings in scoring loops and every
+100 node visits in HNSW.
+5. Actor reentrancy is guarded by a generation counter: every await inside
+SearchService is followed by a generation check before state is touched.
+6. The UI boundary checks both generation and query equality before publishing a
+snapshot.
+7. Never block the cooperative thread pool: no semaphores, Thread.sleep ,
+DispatchGroup.wait or synchronous actor hops. The only synchronous file calls are
+the memory-map open and close.
+ZTronSearchEngine — Package Specification
+Page 24 of 58
+
+=== PAGE 25 ===
+8. No @unchecked Sendable outside the HNSW wrapper (section 2).
+Liveness requirements:
+12. Pure SwiftUI search field and tokens
+ZTronSearchField is pure SwiftUI: a 1:1 clone of UISearchTextField with
+UISearchToken in appearance, behavior and accessibility, with every UIKit delegate
+callback and control event mapped to a view modifier. The UI product never imports UIKit:
+no UIViewRepresentable , no UIKit class, and the only UIKit in the repository is the
+reference rendering inside the parity test host (12.5). SwiftUI's own
+.searchable(text:tokens:) needs iOS 16 and does not reproduce the UIKit field, so the
+clone is built from TextField , Capsule , FocusState and an asset catalog, all available
+on iOS 15.
+Requirement
+How it is met
+Verified by
+Cancellation
+A newer query cancels the prior
+task; cancellation is honoured
+within 10 ms at the next
+checkpoint
+Cancellation tests before, during
+and after index search
+No stale results
+Generation and query checks
+prevent late publication
+Property test over randomized
+query sequences, zero stale
+snapshots allowed
+No deadlock
+No synchronous actor calls, no
+waiting on a task from inside its
+own actor
+Thread Sanitizer in CI; timeout-
+guarded tests
+Bounded work
+Candidate and result limits from
+section 10
+Unit tests on the limits; 100k-item
+performance tests
+Responsive UI
+All search work runs off the main
+actor; publishing 20 hits costs
+under 1 ms on main
+Main-thread checker; frame-time
+assertion
+Predictable
+cleanup
+Search tasks are cancelled on
+dismissal, reset and locale change
+Leak and cancellation tests
+ZTronSearchEngine — Package Specification
+Page 25 of 58
+
+=== PAGE 26 ===
+12.1 ZTronSearchField
+public struct ZTronSearchField<Schema: SearchSchema>: View {
+    public init(text: Binding<String>,                              // the 
+textual portion only, never a token
+                tokens: Binding<[ZTronSearchToken<Schema>]>,
+                prompt: Text? = nil,                                // 
+localized by the host; nil = "Search"
+                tokenSelection: Binding<Set<UUID>>? = nil)          // nil = 
+the field owns selection
+    public var body: some View
+}
+// Appearance. Defaults reproduce UIKit exactly (12.4).
+extension View {
+    func searchFieldStyle(_ style: ZTronSearchFieldStyle) -> some View        
+// .native (default), .plain
+    func tokenBackground(_ color: Color?) -> some View                         
+// tokenBackgroundColor; nil = system
+    func clearButtonMode(_ mode: ZTronClearButtonMode) -> some View           
+// .never, .whileEditing (default), .unlessEditing, .always
+    func searchKeyboard(_ keyboard: ZTronKeyboard) -> some View                
+// package enum; the host never sees a UIKit type
+    func searchCancelButton(_ mode: ZTronCancelButtonMode) -> some View       
+// .automatic (while editing, as UISearchBar), .never
+    func tokenDeletion(_ policy: ZTronTokenDeletionPolicy) -> some View       
+// .enabled (default), .disabled  <-> allowsDeletingTokens
+    func tokenCopying(_ policy: ZTronTokenCopyingPolicy) -> some View         
+// .disabled (default), .enabled  <-> allowsCopyingTokens
+}
+// Events. One modifier per UIKit callback (12.3); SwiftUI's own modifiers 
+where they already exist.
+extension View {
+    func onEditingChanged(_ action: @escaping (Bool) -> Void) -> some View
+    func editingPolicy(_ policy: @escaping (ZTronEditingRequest) -> Bool) -> 
+some View   // .begin, .end
+    func textInputPolicy(_ policy: @escaping (ZTronTextChange) -> Bool) -> 
+some View     // proposed text, range, replacement
+    func onSelectionChanged(_ action: @escaping (ZTronSearchSelection) -> 
+Void) -> some View
+    func onClear(_ action: @escaping () -> Bool) -> some View                  
+// false keeps the text
+    func onSearchCancel(_ action: @escaping () -> Void) -> some View
+    func textToToken(_ rule: @escaping (String) -> ZTronSearchToken<Schema>?) 
+-> some View  // converts the typed text into a token
+ZTronSearchEngine — Package Specification
+Page 26 of 58
+
+=== PAGE 27 ===
+    func onTokenDelete(_ action: @escaping (ZTronSearchToken<Schema>) -> 
+Bool) -> some View   // per-token veto
+    func tokenCopyProvider(_ provider: @escaping (ZTronSearchToken<Schema>) -
+> String) -> some View
+    func onSearchFieldEvent(_ action: @escaping (ZTronSearchFieldEvent) -> 
+Void) -> some View // every event, in order; the parity log
+}
+Focus, submit and keyboard use SwiftUI's own modifiers, so the field behaves like any
+native control:
+.focused($isFocused) works directly: the field forwards focus to its inner text
+input, and a @FocusState in the host round-trips without a bridge.
+.onSubmit fires on the search key; the field applies .submitLabel(.search) by
+default and the host may override it.
+Autocorrection, spell checking, smart quotes and smart dashes are off and
+autocapitalization is .never , so identifiers survive typing; .searchKeyboard picks
+the keyboard.
+The text binding holds only the textual portion and is updated on every change; the
+field never debounces and never talks to a results model.
+Dynamic Type, RTL layout, VoiceOver labels and the Cancel button are implemented
+in SwiftUI and verified against the UIKit reference on the parity matrix.
+12.2 ZTronSearchToken
+public struct ZTronSearchToken<Schema: SearchSchema>: Identifiable, Hashable, 
+Sendable {
+    public enum Kind: Hashable, Sendable {
+        case filter(Schema.Filter)       // hard constraint; a case of the 
+host's filter enum
+        case kind(Schema.Kind)           // restricts results to one class of 
+item
+        case phrase(String)              // exact phrase, no fuzzy or prefix
+    }
+    public let id: UUID
+    public let kind: Kind
+    public let text: String          // localized display label
+    public let systemImage: String?  // SF Symbol name for the token icon
+}
+Behavior parity rules:
+ZTronSearchEngine — Package Specification
+Page 27 of 58
+
+=== PAGE 28 ===
+1. Layout is search glyph, tokens, text input, clear button, in that order. Tokens always
+precede text, exactly as in UIKit, so the textual range is the trailing TextField and
+the public text binding never contains a token.
+2. Tap selects a token (tint fill, white label); tapping elsewhere deselects; a selected
+token is deleted by backspace when deletion is enabled and onTokenDelete does not
+veto it.
+3. Backspace at the start of the text selects the last token; a second backspace deletes
+it. SwiftUI exposes no software-keyboard key events on iOS 15, so the field keeps a
+zero-width sentinel (U+200B) at the start of its private buffer: when the sentinel
+disappears, the field treats it as backspace-at-start, restores the sentinel and acts on
+the tokens. On iOS 17 and later a hardware keyboard uses onKeyPress(.delete)
+instead. The sentinel never reaches the text binding, the accessibility tree or the
+parity log.
+4. textToToken is evaluated on every text change and on submit; a returned token
+replaces the textual portion with UIKit's insertion animation, matched frame by frame
+against the reference recording. Programmatic conversion is the same thing: the host
+appends to tokens and clears text inside withAnimation .
+5. The clear button follows clearButtonMode ; what it does to tokens is whatever the
+UIKit reference does on that iOS version, recorded by the parity suite, never assumed.
+6. The Cancel button ( .searchCancelButton(.automatic) ) appears while editing,
+clears text and tokens, drops focus and calls onSearchCancel , as UISearchBar does.
+7. Tokens are accessibility elements whose label, value, traits and custom actions
+(delete, copy) are copied from the UIKit reference tree per iOS version.
+8. Layout mirrors under layoutDirection == .rightToLeft ; glyph and clear button
+swap sides like UIKit.
+9. Field and token heights track .body under Dynamic Type; long tokens truncate with a
+tail ellipsis at the same width as UIKit.
+10. Token-to-query mapping stays a pure function, SearchQuery(text:tokens:) , unit-
+tested without any UI: .filter(Schema.Filter) joins SearchQuery.filters ,
+.kind(Schema.Kind) joins SearchQuery.kinds , .phrase becomes a required exact
+phrase.
+11. Tokens never take part in fuzzy expansion or prefix matching.
+12. The deviations listed in 12.5 are the only tolerated differences; anything else that
+differs from the UIKit reference is a bug.
+Minimal host:
+ZTronSearchEngine — Package Specification
+Page 28 of 58
+
+=== PAGE 29 ===
+struct SearchScreen: View {
+    @State private var text = ""
+    @State private var tokens: [ZTronSearchToken<CatalogSchema>] = []
+    @FocusState private var focused: Bool
+    @StateObject private var results: ZTronSearchResultsModel<CatalogSchema>   
+// the host owns the state
+    var body: some View {
+        VStack(spacing: 0) {
+            ZTronSearchField(text: $text, tokens: $tokens,
+                             prompt: Text("Search tools, tips, maps"))
+                .focused($focused)
+                .onSubmit { results.submit() }
+                .onSearchCancel { results.reset() }
+                .textToToken { typed in                     // "platform:ios" 
+becomes a filter chip
+                    CatalogFilter(typed: typed).map {
+                        ZTronSearchToken(kind: .filter($0), text: $0.label, 
+systemImage: "line.3.horizontal.decrease")
+                    }
+                }
+            HostResultsList()                               // the host's own 
+list
+        }
+        .zTronSearch(results, text: $text, tokens: $tokens)  // forwards 
+changes, injects results, sets isZTronSearching
+    }
+}
+struct HostResultsList: View {
+    @EnvironmentObject private var results: 
+ZTronSearchResultsModel<CatalogSchema>
+    var body: some View {
+        List {
+            ForEach(results.hits) { hit in
+                switch hit.kind {                 // exhaustive: the compiler 
+knows every class
+                case .map:   MapRow(id: hit.id)
+                case .tip:   TipRow(id: hit.id)
+                case .tool:  ToolRow(id: hit.id)
+                case .game:  GameRow(id: hit.id)
+                case .image: ImageRow(id: hit.id)
+                }
+            }
+            if results.hasMore {
+ZTronSearchEngine — Package Specification
+Page 29 of 58
+
+=== PAGE 30 ===
+                ProgressView().zTronLoadsNextPage(of: results)   // the 
+footer marks the end of the list
+            }
+        }
+    }
+}
+12.3 Delegate-to-modifier map
+Every UIKit callback has exactly one SwiftUI counterpart; the parity log
+( onSearchFieldEvent ) records them in the same order with the same payloads as the
+UIKit delegate log.
+UIKit callback or event
+ZTronSearchField
+Notes
+textFieldDidBeginEditing ,
+textFieldDidEndEditing
+.onEditingChanged { isEditing in
+}
+SwiftUI naming, same two
+transitions
+textFieldShouldBeginEditing ,
+textFieldShouldEndEditing
+.editingPolicy { request in Bool
+}
+Evaluated before the inner input is
+enabled, so a denial shows no focus
+flicker
+textField(_:shouldChangeCharactersIn:replace
+mentString:)
+.textInputPolicy { change in
+Bool }
+Applied by reverting a denied
+change; one extra text notification,
+filtered by the harness
+textFieldDidChangeSelection
+.onSelectionChanged { selection
+in }
+Token selection on every iOS; text
+selection only from iOS 18
+( TextSelection )
+textFieldShouldClear and the clear button
+.onClear { Bool }
+false keeps the text
+textFieldShouldReturn , editingDidEndOnExit
+.onSubmit
+SwiftUI's own;
+.submitLabel(.search) by default
+editingChanged , textDidChangeNotification
+the text binding
+Host observes with
+.onChange(of:)
+tokens mutations (no delegate in UIKit)
+the tokens binding
+Insert, delete and select by the user
+all flow through it
+allowsDeletingTokens
+.tokenDeletion(_:) plus
+.onTokenDelete { token in Bool }
+The per-token veto has no UIKit
+equivalent
+allowsCopyingTokens ,
+searchTextField(_:itemProviderForCopying:)
+.tokenCopying(_:) ,
+.tokenCopyProvider { token in
+String }
+No-op where SwiftUI has no
+pasteboard API (12.5)
+replaceTextualPortion(of:with:at:)
+.textToToken { typed in Token? }
+Also programmatic through the two
+bindings inside withAnimation
+tokenBackgroundColor
+.tokenBackground(_:)
+Color , not UIColor
+clearButtonMode , keyboardType , returnKeyType
+.clearButtonMode(_:) ,
+.searchKeyboard(_:) ,
+.submitLabel(_:)
+Package enums wrap the two
+SwiftUI modifiers whose parameters
+are UIKit enums
+UISearchBar Cancel button
+.searchCancelButton(_:) ,
+.onSearchCancel { }
+Included because hosts expect it
+next to the field
+ZTronSearchEngine — Package Specification
+Page 30 of 58
+
+=== PAGE 31 ===
+12.4 Appearance parity profile
+The clone's defaults are sampled from UIKit, not typed from memory: the parity suite re-
+samples them on every iOS release and fails the build when a value drifts. SwiftUI has no
+semantic fill colors on iOS 15, so the package ships an asset catalog whose named colors
+( searchFieldFill , tokenFill , tokenSelectedFill , tokenSelectedText ,
+placeholderText , clearGlyph ) carry light, dark and increased-contrast variants copied
+from the UIKit values.
+12.5 Parity test matrix
+Parity is proven, not claimed: a test host renders the SwiftUI clone and the UIKit reference
+side by side at identical sizes, drives both with the same scripts, and compares pixels,
+metrics, event logs and accessibility trees on every cell of the matrix. The UIKit reference
+exists only in this host.
+Property
+Default
+Field height
+36 pt at the default content size, growing with
+Dynamic Type
+Corner radius
+10 pt
+Background
+searchFieldFill (UIKit's tertiary system fill)
+Search glyph
+SF Symbol magnifyingglass , secondary label
+color, leading
+Text
+.body , primary label color; placeholder in
+placeholderText
+Clear button
+SF Symbol xmark.circle.fill in clearGlyph ,
+trailing, per clearButtonMode
+Token
+capsule with optional SF Symbol and text,
+tokenFill or .tokenBackground ; selected:
+tokenSelectedFill with tokenSelectedText
+Insets and spacing
+sampled per iOS version and stored in
+ZTronSearchFieldMetrics , the single source the
+layout reads
+Axis
+Values
+iOS
+15.5, 16.4, 17.5, latest 18.x, current beta
+ZTronSearchEngine — Package Specification
+Page 31 of 58
+
+=== PAGE 32 ===
+Thresholds are in section 15.7. Known deviations, the only tolerated differences:
+Range selection spanning tokens and text (UIKit allows it): the clone keeps token
+selection separate from text selection, and text selection is observable only from iOS
+18.
+textInputPolicy is enforced by reverting after the change; the log shows one extra
+text notification, which the harness filters.
+tokenCopying(.enabled) is a no-op while SwiftUI offers no UIKit-free pasteboard
+API on iOS; the cell is marked not applicable.
+Hardware-keyboard range selection with shift and arrows across tokens is partial on
+iOS 15 and 16.
+13. Results, suggestions, pagination and attachment modifiers
+State is split into narrowly scoped models, because on iOS 15 any @Published mutation
+invalidates every view observing that object. There is no single search-screen
+ObservableObject , and no list, row or chat view ships: the package owns state and
+attaches it to the host's own components through modifiers (13.1).
+Axis
+Values
+Simulator
+iPhone SE (3rd gen), iPhone 15, iPhone 15 Pro Max,
+iPad (10th gen)
+Appearance
+light, dark, increased contrast, reduce
+transparency, bold text
+Content size
+XS, L (default), XXXL, AX5
+Layout direction
+LTR, RTL (Arabic locale)
+Input
+software keyboard, hardware keyboard
+Scripts
+type, backspace-select, backspace-delete, tap-
+select, clear, submit, cancel, text-to-token, token
+overflow, focus round trip
+State
+Owner
+Raw field text and tokens
+Host @State , passed to ZTronSearchField
+as bindings
+Throttled query, snapshots, paging
+ZTronSearchResultsModel , owned by the
+host with @StateObject
+ZTronSearchEngine — Package Specification
+Page 32 of 58
+
+=== PAGE 33 ===
+@MainActor public final class ZTronSearchResultsModel<Schema: SearchSchema>: 
+ObservableObject {
+    @Published public private(set) var hits: [SearchHit<Schema.Kind>] = []
+    @Published public private(set) var phase: SearchPhase?            // 
+.lexical, .semantic, .reranked
+    @Published public private(set) var isLoading = false
+    @Published public private(set) var hasMore = false
+    @Published public private(set) var degraded: Set<SearchChannel> = []
+    @Published public private(set) var error: SearchError?
+    public var hitsByKind: [Schema.Kind: [SearchHit<Schema.Kind>]] { get }   
+// derived, for sectioned layouts
+    public init(service: SearchService<Schema>)
+    public func update(text: String, tokens: [ZTronSearchToken<Schema>])  // 
+cancels the prior stream, bumps generation
+    public func submit()                                                    
+// runs the semantic and rerank phases immediately
+    public func loadNextPage()                                              
+// separate cancellable task
+    public func reset()
+}
+@MainActor public final class ZTronSuggestionsModel<Schema: SearchSchema>: 
+ObservableObject {
+    @Published public private(set) var suggestions: [SearchSuggestion] = []
+    public init(service: SearchService<Schema>, minimumQueryLength: Int = 2, 
+pageSize: Int = 10)
+    public func update(prefix: String)
+    public func loadNextPage()
+}
+Results model rules:
+State
+Owner
+Autocomplete suggestions
+ZTronSuggestionsModel , owned by the host
+Chat readiness, transcript, generation
+ZTronChatModel , owned by the host (section
+14.5)
+Row-local state (expanded, pressed)
+The host's row views
+Lists, sections, transcript, consent and
+suggestion presentation
+The host's views, reading the models from the
+environment
+Search activity indicator
+Derived environment value
+isZTronSearching
+ZTronSearchEngine — Package Specification
+Page 33 of 58
+
+=== PAGE 34 ===
+update compares the new query with the current one and returns early when equal,
+so SwiftUI re-renders cost nothing.
+Each snapshot is applied only when its generation matches and its query equals the
+current query.
+isLoading is true from the first keystroke until the final snapshot or a cancellation.
+Every hit arrives with its kind , so a host row switches on it exhaustively; hitsByKind
+gives one section per class without changing the fused order inside a class.
+For a scan context (section 9.1) the model applies no debounce and publishes the
+single final snapshot on the main actor in the same turn;
+ZTronSearchResultsModel(scan:) wraps a ScanIndex with no actor hop at all, and
+several models for several contexts can live on one screen.
+Pagination:
+The host's list ( List or LazyVStack ) marks its end with .zTronLoadsNextPage(of:)
+on the trailing row or a footer shown while hasMore is true; the modifier calls
+loadNextPage() from onAppear .
+Paging runs in its own cancellable task, guarded by generation and cursor, so a
+request for the same page is never duplicated, however early List prefetching fires
+the trigger.
+A query change cancels any page in flight and clears the cursor.
+Suggestions are disabled below minimumQueryLength and return at most pageSize
+per page.
+Environment value:
+private struct IsZTronSearchingKey: EnvironmentKey {
+    static let defaultValue = false
+}
+public extension EnvironmentValues {
+    var isZTronSearching: Bool {
+        get { self[IsZTronSearchingKey.self] }
+        set { self[IsZTronSearchingKey.self] = newValue }
+    }
+}
+The screen injects it with .environment(\.isZTronSearching, results.isLoading) ;
+descendants read @Environment(\.isZTronSearching) . The model remains the source
+of truth and the environment value is a derived, read-only projection.
+ZTronSearchEngine — Package Specification
+Page 34 of 58
+
+=== PAGE 35 ===
+13.1 Attaching to custom components
+Every capability attaches to any host view through a modifier; the modifier wires, the
+model owns, the host lays out. Modifiers are how SwiftUI itself attaches behavior to views
+it does not own ( .searchable , .refreshable , .task ), they compose on any
+component, and they keep the package out of layout decisions; their limits are the rules
+below.
+extension View {
+    /// Drives `results` from any text input, ZTronSearchField or the host's 
+own, and injects it for descendants.
+    func zTronSearch<Schema>(_ results: ZTronSearchResultsModel<Schema>,
+                             text: Binding<String>,
+                             tokens: Binding<[ZTronSearchToken<Schema>]>) -> 
+some View
+    /// Injection only, when the host forwards updates itself.
+    func zTronResults<Schema>(_ results: ZTronSearchResultsModel<Schema>) -> 
+some View
+    /// On the row or footer that marks the end of the host's list: loads the 
+next page when it appears.
+    func zTronLoadsNextPage<Schema>(of results: 
+ZTronSearchResultsModel<Schema>) -> some View
+    /// Drives `suggestions` from `text` and injects it; presenting them 
+stays with the host.
+    func zTronSuggestions<Schema>(_ suggestions: 
+ZTronSuggestionsModel<Schema>, for text: Binding<String>) -> some View
+    /// Injects `chat`; prepares it on appear under `policy` (nil = the host 
+calls prepare); cancels generation on disappear.
+    func zTronChat<Schema>(_ chat: ZTronChatModel<Schema>, prepare policy: 
+DownloadPolicy? = nil) -> some View
+}
+// Inside any descendant, including the host's own rows:
+@EnvironmentObject private var results: 
+ZTronSearchResultsModel<CatalogSchema>
+@Environment(\.isZTronSearching) private var isSearching
+Rules:
+1. Hosts own the models with @StateObject ; a modifier never creates state, because
+state created inside a modifier lives and dies with the modified view's identity and is
+silently recreated on structural changes.
+2. Modifiers are thin: binding forwarding, environmentObject injection and task ,
+onAppear , onDisappear lifecycle. No layout, no presentation, no logic worth testing
+on its own; each stays under 30 lines and the models remain the unit under test.
+ZTronSearchEngine — Package Specification
+Page 35 of 58
+
+=== PAGE 36 ===
+3. Readers declare @EnvironmentObject with the concrete schema. A missing injection
+is the standard SwiftUI crash; the lint test in section 16 catches a screen that reads a
+model without attaching it.
+4. Field-scoped modifiers (section 12) are unprefixed and are no-ops on other views, like
+.submitLabel ; modifiers that attach package state to arbitrary views carry the
+zTron prefix.
+5. .zTronLoadsNextPage cannot infer the last row, so the host applies it to the trailing
+row or a footer; the model's cursor and generation guards make an early or repeated
+trigger harmless.
+6. The host decides layout: List , LazyVStack , sections from hitsByKind , a chat
+transcript, source chips, all built from the models with the same kind switch.
+14. Local language model and chat
+The package can chat with a local LLM over the indexed corpus, but only through two
+boundaries the host injects via the facade: an asset provider that makes the model files
+available locally (backed by ZTronAssetKit, downloading them when they are missing) and
+a runtime that generates tokens. Core never links ZTronAssetKit or MLX. The MLX
+runtime ships as a separate package with an iOS 17 floor, because mlx-swift's
+Package.swift declares .iOS(.v17) and .macOS("14.0") , and its Metal shaders build
+only through Xcode.
+14.1 Facade and boundaries
+public final class ZTronSearch<Schema: SearchSchema>: Sendable {   // the 
+facade the host wires once
+    public init(search: SearchService<Schema>,
+                assets: (any ModelAssetProviding)? = nil,          // host 
+adapter over ZTronAssetKit
+                languageModel: (any LocalLanguageModel)? = nil,    // runtime 
+adapter, e.g. ZTronSearchEngineMLX
+                chat: ChatConfiguration = .default)
+    public let search: SearchService<Schema>
+    public let chat: ChatService<Schema>?                          // nil 
+when either boundary is absent
+}
+public struct ModelAsset: Hashable, Sendable, Codable {
+    public let id: String                      // "qwen3-1.7b-4bit"
+    public let revision: String                // pinned commit or tag, never 
+"main"
+    public let files: [ModelFile]              // name, byte count, SHA-256
+ZTronSearchEngine — Package Specification
+Page 36 of 58
+
+=== PAGE 37 ===
+    public var totalBytes: Int64 { get }
+}
+public enum ModelAssetAvailability: Sendable {
+    case available(URL)                        // directory holding every 
+file, checksums verified
+    case downloading(bytes: Int64, of: Int64)
+    case missing
+    case failed(ModelAssetError)               // .offline, .checksum, 
+.diskFull, .policy
+}
+/// The boundary entity: implemented by the host over ZTronAssetKit, injected 
+through ZTronSearch.
+public protocol ModelAssetProviding: Sendable {
+    func availability(of asset: ModelAsset) async -> ModelAssetAvailability
+    func fetch(_ asset: ModelAsset, policy: DownloadPolicy) -> 
+AsyncThrowingStream<ModelAssetAvailability, Error>  // resumable; ends with 
+.available
+    func evict(_ asset: ModelAsset) async throws
+}
+public struct LanguageModelDescriptor: Sendable, Hashable {
+    public let asset: ModelAsset
+    public let contextWindow: Int              // tokens the runtime accepts 
+per request
+    public let minimumPhysicalMemory: Int64
+    public let minimumOS: OperatingSystemVersion
+}
+public struct GenerationRequest: Sendable { public var messages: 
+[ChatMessage]; public var options: GenerationOptions }
+public enum GenerationEvent: Sendable { case delta(String), usage(prompt: 
+Int, generated: Int), finished(StopReason) }
+/// Implemented by the runtime package; core only streams through it.
+public protocol LocalLanguageModel: Sendable {
+    var descriptor: LanguageModelDescriptor { get }
+    func load(from directory: URL) async throws
+    func unload() async
+    func countTokens(_ text: String) async -> Int
+    func generate(_ request: GenerationRequest) -> 
+AsyncThrowingStream<GenerationEvent, Error>
+}
+Rules:
+ZTronSearchEngine — Package Specification
+Page 37 of 58
+
+=== PAGE 38 ===
+Core knows neither ZTronAssetKit nor MLX. Both arrive as existentials through
+ZTronSearch ; the ZTronAssetKit adapter is the only place that package is imported,
+in the host app or a thin ZTronSearchEngineAssetKit bridge.
+ModelAsset.revision is pinned; the same id at another revision is another asset,
+fetched and verified again.
+fetch is resumable, verifies SHA-256 per file, and deletes a mismatched file before
+failing with .checksum .
+Available-or-download rule: prepare() asks availability ; .available loads,
+.missing fetches under the download policy, .downloading attaches to the running
+fetch instead of starting another.
+generate streams, honours task cancellation within one decoded token, and never
+blocks the cooperative pool: MLX evaluation runs on the adapter's own thread.
+14.2 Reference runtime and model
+Item
+Choice
+Runtime package
+ZTronSearchEngineMLX , a separate SwiftPM
+package with iOS 17.0 and macOS 14.0 floors, Swift
+6, depending on ZTronSearchEngine (core), mlx-
+swift ( MLX , MLXNN , MLXFast ) and the LLM layer in
+mlx-swift-lm; linked once by the app, since two
+copies of MLX in one process misbehave
+Reference model
+mlx-community/Qwen3-1.7B-4bit: Qwen3-1.7B
+converted with mlx-lm 0.24.0, 4-bit, 968 MB on
+disk, Apache-2.0, safetensors plus tokenizer and
+chat template
+Prompt format
+The chat template shipped with the asset, applied
+by the runtime, never hand-written in core;
+thinking mode off by default, and any <think>
+block is stripped before .delta
+Context
+4,096-token working window by default; the chat
+service fits system prompt, sources, history and a
+512-token reply inside it
+Sampling defaults
+temperature 0.7, top-p 0.8, at most 512 new tokens;
+the asset's generation_config.json wins when
+present; fixed seed in tests
+ZTronSearchEngine — Package Specification
+Page 38 of 58
+
+=== PAGE 39 ===
+14.3 Chat service
+public actor ChatService<Schema: SearchSchema> {
+    public func prepare(policy: DownloadPolicy = .wifiOnly) -> 
+AsyncStream<ChatReadiness>
+    public func newSession(system: String? = nil, grounding: Grounding = 
+.corpus(topK: 6, kinds: nil)) -> ChatSessionID
+    public func send(_ text: String, in session: ChatSessionID) -> 
+AsyncThrowingStream<ChatEvent<Schema.Kind>, Error>
+    public func cancel(_ session: ChatSessionID) async
+    public func unload() async
+}
+public enum ChatReadiness: Sendable {
+    case checking, downloading(bytes: Int64, of: Int64), loading, ready, 
+unavailable(UnavailableReason)
+}
+public enum ChatEvent<Kind: SearchItemKind>: Sendable {
+    case sources([SearchHit<Kind>])       // retrieved before generation; 
+kind-aware, so rows switch on kind
+    case delta(String)
+    case citation(SearchableID)           // the model wrote [kind:id]; 
+emitted only when the id is among sources
+    case finished(ChatUsage)
+}
+Each send :
+1. Retrieval: runs SearchService.results(for:) for the message, waits for the final
+snapshot, and takes the top K hits (default 6) restricted to the session's kinds. Each
+hit is rendered as [kind:id] title, caption from its localized surface, at most 80
+tokens per source.
+2. Prompt assembly inside the budget contextWindow - maxNewTokens - 64 : host
+system prompt, grounding instructions (answer only from the sources, cite as
+[kind:id] , say when the sources do not cover the question), the sources block,
+history trimmed oldest-first, then the message. The message and the sources are
+never trimmed; history is.
+Item
+Choice
+Inspiration only
+mlx-swift-examples' MLXChatExample and
+LLMEval inform the adapter; no API or code is
+copied, test prompts excepted
+ZTronSearchEngine — Package Specification
+Page 39 of 58
+
+=== PAGE 40 ===
+3. Generation streams as .delta ; [kind:id] patterns are parsed incrementally and
+emitted as .citation only when the id is in the sources. Unknown ids are dropped
+and logged.
+4. One generation at a time on the device: a new send in the same session cancels the
+one in flight; other sessions queue.
+5. The model loads lazily on the first send and unloads after 120 s idle, on a memory
+warning, or on unload() ; a session keeps its history across unloads.
+14.4 Device gate and lifecycle
+Gate ( ChatConfiguration.availability , default .auto ); all of the following must hold:
+OS at least descriptor.minimumOS (iOS 17 for the MLX runtime) and physical
+memory at least descriptor.minimumPhysicalMemory (6 GB for Qwen3-1.7B-4bit: 968
+MB of weights plus KV cache and runtime, about 1.8 GB resident).
+Free disk at least twice asset.totalBytes before a download starts.
+A one-time calibration after the first load: prefill 512 tokens and decode 64; enable
+only when time to first token is 3 s or less and decode runs at 8 tokens/s or more. The
+verdict is persisted and recomputed after an app or OS update.
+The iPhone 6s fails on OS and memory: chat is unavailable(.device) and the UI
+shows no entry point. .on and .off override the gate for QA builds.
+Fetching is a no-op when the files are already on disk and verified; a retry re-verifies and
+resumes instead of starting over; an unload keeps the files and the session's history, so
+the next message only reloads the weights.
+Download policy: .wifiOnly by default, .allowCellular , or .never when the host pre-
+bundles the files. The UI discloses the size (968 MB) before the first fetch; downloads
+continue in the background through ZTronAssetKit's own session, and the engine only
+chat lifecycle · 7 states
+ZTronSearchEngine — Package Specification
+Page 40 of 58
+
+=== PAGE 41 ===
+observes progress.
+14.5 Attaching chat to host views
+@MainActor public final class ZTronChatModel<Schema: SearchSchema>: 
+ObservableObject {
+    @Published public private(set) var readiness: ChatReadiness
+    @Published public private(set) var transcript: 
+[ChatTranscriptEntry<Schema.Kind>]   // role, text, sources, citations
+    @Published public private(set) var isGenerating = false
+    public init(chat: ChatService<Schema>)
+    public func prepare(policy: DownloadPolicy)
+    public func send(_ text: String)
+    public func cancel()
+}
+extension View {
+    /// Injects `chat` for descendants; prepares it on appear under `policy` 
+(nil = the host calls prepare); cancels generation on disappear.
+    func zTronChat<Schema>(_ chat: ZTronChatModel<Schema>, prepare policy: 
+DownloadPolicy? = nil) -> some View
+}
+No chat view ships. The host owns ZTronChatModel with @StateObject , attaches it to its
+own screen with .zTronChat , and builds the transcript, the composer, the readiness card
+(consent with the 968 MB size, progress, retry) and the source chips from the model's
+published state. Sources are SearchHit<Schema.Kind> , so a cited map opens as a map
+and a cited tip as a tip through the same kind switch as the results rows. The model and
+the modifier are iOS 15 API; readiness is .unavailable(.device) below iOS 17 or on a
+device that fails the gate, so such hosts show no entry point.
+14.6 Privacy
+Everything runs on device: no message, prompt or corpus text leaves it, and the only
+network traffic is the model download through ZTronAssetKit.
+Prompts contain only the localized surfaces of indexed items and the user's own
+messages; no analytics or popularity data.
+The grounding instructions make the model decline questions the sources do not
+cover; the host may append its own policy text to the system prompt.
+ZTronSearchEngine — Package Specification
+Page 41 of 58
+
+=== PAGE 42 ===
+15. Quality targets
+Every target below is a p95 on the reference device (iPhone 6s, iOS 15.8, 100k items,
+Release build) measured over the golden query set; p50 should land at about half. The
+design doc's ranges are tightened to a single ceiling, and new targets cover memory,
+relevance and start-up, which the design doc left open.
+15.1 Latency
+Stage
+Design doc
+ZTron target (p95)
+Tokenization and normalization,
+query of 64 characters or fewer
+< 0.5 ms
+0.3 ms
+Prefix lexical lookup
+1 to 5 ms
+3 ms
+BM25F scoring, 2,000 candidates or
+fewer
+1 to 5 ms
+3 ms
+Fuzzy expansion, 8 candidates per
+token
+2 to 10 ms
+6 ms
+RRF fusion, 3 channels × 200 entries
+< 1 ms
+0.5 ms
+First lexical snapshot, debounce fire
+to published
+5 to 20 ms
+12 ms
+Query embedding, 32 tokens or
+fewer, CPU
+50 to 300+
+ms
+180 ms, hard cap 300 ms then skip
+HNSW ANN top 50
+1 to 10 ms
+5 ms, with recall@10 of at least 0.95
+against brute force
+Semantic snapshot after the typing
+pause
+300 to 600
+ms
+500 ms, including the 300 ms
+debounce
+Cross-encoder rerank, 16 pairs,
+devices past the calibration gate
+not stated
+250 ms, hard cap 400 ms then skip
+Final snapshot on devices past the
+calibration gate
+not stated
+750 ms after the typing pause
+Next page of 20 hits
+not stated
+8 ms
+Cold start to search-ready (memory-
+mapped index)
+not stated
+250 ms
+Full lexical rebuild on locale change
+not stated
+2 s, in the background, never
+blocking a query
+ZTronSearchEngine — Package Specification
+Page 42 of 58
+
+=== PAGE 43 ===
+15.2 Memory (resident, search subsystem)
+15.3 Relevance
+Golden set: at least 300 judged queries covering all five item types and at least three
+languages, one of them non-Latin, with graded judgments. Thresholds are acceptance
+gates for a release, not aspirations.
+Stage
+Design doc
+ZTron target (p95)
+Incremental upsert, per document
+not stated
+0.1 ms amortized
+Main-thread cost of publishing a 20-
+hit snapshot
+not stated
+1 ms; no frame over 16.7 ms
+attributable to search
+Component
+Target
+Lexical index, 100k documents, active locale plus
+base
+40 MB
+Each additional secondary language
+10 MB
+Item vectors, 100k × 384 INT8
+40 MB
+HNSW graph, M = 16
+20 MB
+Embedding model, loaded
+80 MB; reload after unload 800 ms or
+less
+Steady state, models unloaded
+110 MB
+Peak during a semantic query, reference device
+200 MB
+Reranker model, loaded, devices past the
+calibration gate only
+60 MB
+Peak during a reranked query, devices past the
+calibration gate only
+320 MB, both models resident
+Query class
+Target
+Exact title
+Rank 1 in at least 98% of queries
+Title prefix of 3 or more characters
+MRR@10 at least 0.85
+Typos, at most 2 edits on tokens of 6 or more
+characters
+Recall@10 at least 0.90
+ZTronSearchEngine — Package Specification
+Page 43 of 58
+
+=== PAGE 44 ===
+15.4 Liveness
+Zero stale snapshots published over a randomized sequence of 10,000 query changes.
+Cancellation honoured within 10 ms of the next checkpoint.
+Zero duplicate page requests.
+Thread Sanitizer clean under Swift 6 strict concurrency.
+15.5 Degradation policy
+When a stage breaches its hard cap, the channel is skipped for that snapshot and
+reported in SearchSnapshot.degraded ; the lexical snapshot is never withheld. After 3
+consecutive semantic breaches, or a memory warning, the semantic channel is disabled
+for the session and re-enabled on the next foreground. A rerank that breaches 400 ms is
+skipped and the fused order stands; 3 consecutive breaches disable the stage for the
+session and force recalibration at the next launch. A model that cannot meet its budget
+(80 MB embedding, 60 MB reranker) is not shipped: the engine runs the channels it can
+afford until a smaller model qualifies.
+15.6 Local chat, devices past the gate
+Measured on an A17 Pro-class iPhone with 8 GB and an M-series Mac; the iPhone 6s never
+runs any of it.
+Query class
+Target
+Keyword or tag queries
+NDCG@10 at least 0.80
+Paraphrase or synonym (semantic)
+Recall@10 at least 0.75
+Cross-language, query language differs from
+the item's base language
+Recall@10 at least 0.70
+Localized title in the active locale
+Rank 1 in at least 95%; the localized value
+must beat the base value
+Filter and kind tokens
+Precision 1.0; no hit may violate a hard
+constraint
+Reranked head, devices past the calibration
+gate
+NDCG@10 at least 0.85, and never below the
+fused NDCG@10 for any class above
+Measure
+Target
+Model load from disk, cold / warm
+4 s / 1 s
+ZTronSearchEngine — Package Specification
+Page 44 of 58
+
+=== PAGE 45 ===
+15.7 UI parity, every cell of the section 12.5 matrix
+Measure
+Target
+Time to first token, 512-token prompt
+2 s p95
+Decode rate
+12 tokens/s p50, 8 p95; below 8 the
+calibration disables chat
+Resident memory during generation
+1.8 GB; on a memory warning the LLM
+unloads before the embedding model
+Download
+968 MB, resumable, SHA-256 verified; a
+resumed fetch never re-downloads a
+verified file
+Cancellation
+generation stops within one token, at most
+150 ms
+Grounded answers, 100-question golden set
+over the corpus
+at least 90% cite a correct source; 100% of
+unknown citations dropped; at least 80%
+decline when the sources do not cover the
+question
+Comparison
+Threshold
+Pixel snapshot, clone against the UIKit
+reference at identical size, caret masked
+at most 0.5% of pixels differ, and no
+differing pixel exceeds a colour distance of
+ΔE 2
+Layout metrics: field height, baseline, glyph,
+token and clear-button frames
+within 0.5 pt
+Event log for each script
+identical order and payloads, after the
+harness drops the one notification named in
+12.5
+Accessibility tree: labels, values, traits,
+custom actions
+identical
+Animation of text-to-token conversion
+same duration within one frame (16.7 ms)
+and same final frame
+Deviations
+only those listed in 12.5; any other difference
+fails the build
+ZTronSearchEngine — Package Specification
+Page 45 of 58
+
+=== PAGE 46 ===
+15.8 Small contexts, scan strategy, reference device
+15.9 Database sources, reference device
+Measure
+40 documents
+500 documents
+Context creation (projection and tokenization, no
+disk)
+5 ms
+50 ms
+Query, lexical + fuzzy + fusion, p95
+0.5 ms
+3 ms
+Resident memory per context
+100 KB
+1 MB
+Snapshots per query
+1, final
+1, final
+Ranking against the indexed strategy on the same
+documents
+identical order
+identical order
+Disk I/O
+none
+none
+Measure
+Target
+Context creation from 10k rows, 3 string
+fields, 2 languages, resolver cached
+1.5 s, in pages of 500 rows, never blocking a
+query on an existing generation
+One page: read, resolve and project 500
+rows
+40 ms
+Incremental upsert of 100 changed rows
+from the change stream
+50 ms after the commit
+Resident memory per 10k-row context
+(projection plus index)
+6 MB
+Query latency
+unchanged: the strategy is the same as for
+memory items (sections 15.1 and 15.8)
+Index round trip inside the host database,
+10k documents
+400 ms write, 250 ms load
+Ranking of a database row against the same
+item held in memory
+identical score and order
+ZTronSearchEngine — Package Specification
+Page 46 of 58
+
+=== PAGE 47 ===
+16. Testing
+Async XCTest on the iOS 15 floor; Thread Sanitizer on in CI; performance tests record
+baselines on the reference device with XCTClockMetric and XCTMemoryMetric ;
+relevance tests load the golden fixtures and fail the build below the section 15 gates.
+Core correctness:
+Exact-title ranking; body and caption matching; prefix matching.
+Empty and too-short queries return an empty final snapshot without touching the
+semantic channel.
+Unicode and diacritic normalization, including NFKC folding and width folding.
+Fuzzy correction at edit distance 1 and 2, and no expansion for IDs, URLs and tokens.
+Every hit's kind is a valid case of the schema; a document with an unknown kind is
+dropped and logged; hitsByKind partitions the hits without loss or reordering.
+Typed filters round-trip through the index as FilterRecord ; records unknown to the
+current build are ignored; AND across keys, OR within a key; ZTronStringSchema
+behaves exactly like the original string design.
+Filters and kind tokens as hard constraints.
+Search contexts (section 9.1):
+Disjointness: two contexts with colliding ids and different schemas never see each
+other's documents, statistics or signals, and every snapshot carries the right
+contextID .
+Scan and indexed strategies rank the same documents identically (property test over
+random corpora up to 500 documents).
+A 40-document context meets the section 15.8 timings on the reference device and
+performs no disk I/O.
+replace(items:) and releasing a context free everything; no growth across 1,000
+create-and-release cycles.
+A context with its own locale normalizes and matches in that locale.
+ScanIndex.hits(for:) called from the main actor returns in the same run loop turn.
+Database sources (section 9.2), with an in-memory fake of the boundary and a fake
+resolver, no SQLite in core tests:
+SQL composition snapshots: identifier quoting, predicate, paging, bindings passed
+through untouched.
+Paged reads inside one read transaction per page; cancellation between pages.
+Projection of literal, localized-key and per-row fields in one row; fallback chain;
+unresolved keys index nothing and the raw key is absent from the index.
+ZTronSearchEngine — Package Specification
+Page 47 of 58
+
+=== PAGE 48 ===
+A mixed context (memory plus two tables) ranks identically to an all-memory context
+holding the same documents.
+Typed filters rebuilt from filter columns; id collisions across sources are debug-
+asserted.
+Change stream: upsert, remove, whole-table refresh, batching per commit, generation
+guard.
+Index-in-database persistence: round trip, atomic generation swap, rebuild on version
+mismatch.
+Adapter integration (a dedicated test target that depends on SQLite.swift): file, in-
+memory and read-only connections, transactions, update and commit hooks,
+Expression<String> and Table rendering, WAL mode.
+Internationalization:
+Localized title wins over the base title for the active locale; base wins when the
+localization is empty.
+Language fallback chain ( it-IT to it to base).
+Secondary preferred languages hit through localizedAlt at low weight.
+CJK bigram tokenization and prefix matching.
+Locale change rebuilds under a new generation while queries keep working on the old
+index.
+Cross-language semantic retrieval with the deterministic fake embedding provider.
+Concurrency and liveness:
+Cancellation before, during and after index search.
+Stale-result suppression with randomized query sequences.
+Pagination reset on query change and duplicate-page prevention.
+No deadlock under reentrant calls into SearchService .
+UI parity suite (simulator matrix, section 12.5):
+Snapshot, metric, event-log and accessibility comparisons against the UIKit reference
+on every cell of the matrix, within the section 15.7 thresholds; reference snapshots are
+regenerated per iOS release and reviewed in the pull request.
+Token scripts: insert and remove through the binding, tap-select, backspace-select
+then backspace-delete, onTokenDelete veto, text-to-token through textToToken
+and programmatically, token overflow scrolling.
+The sentinel never leaks: the text binding, the accessibility tree and the parity log
+contain no U+200B in any script.
+ZTronSearchEngine — Package Specification
+Page 48 of 58
+
+=== PAGE 49 ===
+Focus round trip through .focused , submit through .onSubmit , clear, cancel, and
+every modifier in the 12.3 map fires exactly once per UIKit callback.
+isZTronSearching tracks isLoading .
+A lint test fails on import UIKit , UIViewRepresentable or any UI -prefixed type in
+ZTronSearchEngineUI .
+Attachment modifiers (section 13.1):
+.zTronSearch forwards every text and token change to update , injects the model,
+and sets isZTronSearching ; a screen that reads a model through
+@EnvironmentObject without an attaching modifier fails the lint test.
+.zTronLoadsNextPage on a footer loads exactly one page per cursor, however often
+onAppear fires.
+.zTronSuggestions drives update(prefix:) only at or above minimumQueryLength .
+.zTronChat prepares on appear under the given policy, never when the policy is nil,
+and cancels generation on disappear; the model's state survives the modifier's view
+being recreated.
+No modifier creates state: structural identity changes around a modifier leave the
+host-owned models untouched.
+Reranker (devices past the calibration gate):
+Calibration enables the stage only inside the thresholds of section 7.4; .off never
+loads the model; the verdict is recomputed after an app or OS update.
+Reordering is confined to the top 16; every position below keeps the fused order.
+A cap breach falls back to the fused order with degraded set; three breaches disable
+the stage for the session.
+The blend keeps an exact-title hit inside the head on the full golden set.
+Local chat:
+Fake runtime with a scripted token stream, delays and failures; fake asset provider
+scripted as available, missing, downloading, checksum failure and offline.
+Lifecycle transitions, including resume after an interrupted fetch, retry after failure,
+and cancel during download and generation.
+Prompt budget: history trimmed oldest-first; the message and the sources are never
+trimmed; no prompt ever exceeds the context window.
+Citation parsing: [kind:id] resolved only against the sources; unknown ids dropped
+and logged.
+Grounding retrieval honours the session's kinds and uses the localized surface.
+ZTronSearchEngine — Package Specification
+Page 49 of 58
+
+=== PAGE 50 ===
+Device gate: the iPhone 6s profile yields unavailable(.device) without touching
+the asset provider.
+One generation at a time; unload after idle and on memory warning; history survives
+an unload.
+Integration tests in ZTronSearchEngineMLX run through xcodebuild on an Apple-
+silicon Mac, since SwiftPM alone cannot build the Metal shaders; prompts adapted
+from the mlx-swift examples are acceptable fixtures, and no runtime code is copied.
+Performance and memory:
+100k-item indexing time, cold-start load time and the latency table of section 15.1.
+Index size and resident memory assertions from section 15.2.
+HNSW recall@10 against brute force on 1,000 sampled queries.
+17. Status and roadmap
+The design doc reports the lexical path, the field and the models as implemented or
+specified; everything in this spec beyond that is new work, ordered so each milestone
+ships a usable engine.
+Already implemented or specified: minimal Searchable and capability protocols,
+SearchDocument , a basic tokenizer, the BM25 index actor, a throttled cancellable
+SearchService , the SwiftUI search field, a narrowly scoped results model, an optional
+paged suggestions model, the search-activity environment value, and XCTest targets for
+correctness, cancellation, stale results and performance.
+Milestones, each gated by its tests passing on the reference device:
+1. Internationalized core: NLTokenizer tokenization, localized projection and field
+resolution, localizedAlt indexing, locale-change rebuild, BM25F field weights,
+SearchSchema (typed kinds and filters), the generic SearchService<Schema> , and
+SearchContext with the scan and indexed strategies plus ScanIndex . Gate: section
+16 internationalization, kind, filter and context tests, the lexical latency targets and
+the section 15.8 timings.
+2. Database sources: the SearchDatabase boundaries, SearchTableSource with literal,
+localized-key and per-row string fields, LocalizedStringResolving , paged
+projection, mixed contexts, the change stream, index-in-database persistence, and
+the reference SQLite.swift adapter with its own test target. Gate: section 16 database
+tests with the in-memory fake, the adapter integration tests, and the section 15.9
+targets. Starts after milestone 1; the 30-minute packages are in section 18.1.
+ZTronSearchEngine — Package Specification
+Page 50 of 58
+
+=== PAGE 51 ===
+3. Fuzzy channel: trigram candidate generation over the vocabulary, bounded Damerau-
+Levenshtein verification, exclusion rules. Gate: typo relevance target and fuzzy
+latency target.
+4. Pure SwiftUI field, tokens and attachment modifiers: ZTronSearchField<Schema> as
+a clone of UISearchTextField , token chips, sentinel backspace, text-to-token
+animation, the delegate-to-modifier map, the asset catalog sampled from UIKit, the
+zTron attachment modifiers over host-owned models, and the parity host with the
+UIKit reference. Gate: section 15.7 thresholds on the full 12.5 matrix, the modifier tests
+and the filter precision target.
+5. Semantic channel: EmbeddingProvider and Core ML adapter, INT8 vector store,
+HNSW actor, weighted RRF, degradation policy. Gate: model within the 80 MB budget,
+embedding and ANN latency targets, semantic and cross-language relevance targets.
+6. Cross-encoder rerank: Reranking protocol and Core ML adapter, calibration gate,
+blend, third snapshot, degradation rules. Gate: model within 60 MB, rerank latency
+target on an A12-class device, reranked NDCG target, and proof that the 6s never
+loads it.
+7. Ranking profile and signal providers: popularity, freshness, editorial pins, kind boosts;
+weights tuned from relevance judgments. Gate: no regression on any section 15.3
+class.
+8. Local chat: ZTronSearch facade and the two boundaries in core, ChatService with
+grounding and citations, the ZTronSearchEngineMLX package, the ZTronAssetKit
+adapter in the host, calibration gate, ZTronChatModel and the .zTronChat modifier.
+Gate: fake-runtime tests green in CI, section 15.6 targets on an A17 Pro-class iPhone
+and an M-series Mac, and chat hidden on the 6s.
+9. Device validation: benchmark real corpus text lengths on an iPhone 6s, an A12-class
+and an A17 Pro-class device, tune debounce thresholds, field and channel weights,
+then lock performance baselines in CI.
+Gated extensions, outside the iPhone 6s budget:
+Per-locale item vector sets shipped by the sync pipeline, when the multilingual
+model's cross-language recall falls short of the 0.70 gate for a supported language.
+Range filters (dates, numbers) through a SearchRangeFilter protocol, if a host
+needs more than equality.
+Open questions:
+Which multilingual embedding model fits 80 MB after 8-bit quantization and
+vocabulary pruning to the app's supported languages?
+Which multilingual cross-encoder fits 60 MB with 6 layers or fewer, and does it pass
+calibration on A12?
+ZTronSearchEngine — Package Specification
+Page 51 of 58
+
+=== PAGE 52 ===
+18. Build effort estimate
+Building everything in this spec with Claude Code takes roughly 188 to 287 hours of active
+agent time, which one Ultra subscription covers in about 2 to 3 billing months at 40 to 50
+agent-hours a week, without usage credits. Estimate as of ​Nov 5, 2026 , for the scope
+above: no list, row or chat views, attachment modifiers instead.
+Assumptions:
+One developer driving Claude Code, no parallel worktree sessions.
+About 30% of hours on an Opus or Fable-class model (architecture, Swift 6
+concurrency, parity debugging), 70% on a Sonnet-class model.
+Hours are active agent time; the simulator matrix and device benchmarks burn CI
+time, not plan usage.
+Model conversion (embedding, cross-encoder) and the ZTronAssetKit adapter are
+included; ZTronAssetKit itself is not.
+Usage points: 1 point = 1% of one week's Ultra allowance, so 100 points is a full week of
+the plan and about 430 points a billing month. Derived only from the historical weekly
+bars below (midpoints of 32 Opus-class or 360 Sonnet-class hours a week), one Opus-
+class agent-hour costs about 3.1 points and one Sonnet-class hour about 0.3, which is
+1.13 points per blended hour at the 30/70 mix. Fable has its own weekly bar, so hours
+spent on Fable would not draw on these points.
+Does the sync pipeline ship per-locale vector sets, or base-language vectors only?
+Should the fallback filter stay .string(key:value:) , or do you want single-string tag
+semantics?
+Should token copying be enabled, and if so what text does a pasted token carry?
+Which languages count as supported for the golden set's non-Latin coverage?
+Does ZTronAssetKit provide resumable, checksum-verified background downloads,
+or does the bridge own resume and verification?
+Is Qwen3-1.7B-4bit the shipping model, or does a smaller Qwen3 quant cover 4 GB
+devices too?
+ZTronSearchEngine — Package Specification
+Page 52 of 58
+
+=== PAGE 53 ===
+Agent, effort and ultracode per work package, chosen for the best quality-to-cost
+compromise: an Opus-class model where a wrong design costs a rewrite (contracts,
+concurrency, index format, field internals), a Sonnet-class model wherever a test can
+catch the mistake, a Haiku-class model for mechanical volume; effort xhigh only where a
+bug is silent (concurrency, persistence, HNSW recall); ultracode only for fan-outs of
+independent lanes that each have their own tests. Ultracode is a Claude Code session
+setting that lets Claude run parallel subagents for substantive tasks; it buys calendar
+time, not usage, and since the late-September 2026 update it no longer changes the
+session's effort, so the effort column is set separately. Fable 5.1 draws on its own weekly
+Work package
+Code +
+tests
+Claude Code
+hours
+Usage points on
+Ultra
+Core engine: schema, i18n tokenizer,
+BM25F with memory-mapped
+persistence, fuzzy, RRF, ranking,
+service, paging, locale rebuild, contexts
+and scan strategy
+10k to 14k
+LOC
+45 to 70
+51 to 79
+Database sources: boundaries, table
+sources, localized-key resolution,
+paged projection, change stream,
+index-in-database, reference adapter
+(section 18.1)
+2k to 3k
+13 to 17
+14 to 19
+Semantic and rerank: Core ML
+adapters, INT8 store, HNSW, calibration
+gate, model-conversion scripts
+6k to 8k
+30 to 45
+34 to 51
+Chat: facade, boundaries, grounding,
+state machine, fakes
+3k to 4k
+15 to 25
+17 to 28
+MLX runtime package
+2k to 3k
+10 to 20
+11 to 23
+Pure SwiftUI field, tokens, observable
+models, attachment modifiers
+4k to 5.5k
+20 to 32
+23 to 36
+Parity host, suite and CI matrix
+(iteration-heavy)
+5k to 7k
+35 to 60
+40 to 68
+Golden sets, relevance harness, device
+benchmarks, CI, docs
+3k to 4k
+15 to 25
+17 to 28
+Total
+35k to 48k
+183 to 294
+207 to 332
+ZTronSearchEngine — Package Specification
+Page 53 of 58
+
+=== PAGE 54 ===
+bar on Ultra, so it is the agent of choice for the two design reviews that gate everything
+(the SearchService concurrency model and the field internals) when the main bar is
+tight.
+Work package
+Agent
+Effort
+Ultracode
+Core engine
+Opus 5.5 for contracts,
+index format and
+SearchService ;
+Sonnet 5.5 for
+tokenizer, fuzzy, RRF
+and ranking profile
+xhigh on the
+service,
+persistence and
+locale rebuild;
+high elsewhere
+Yes, once the
+contracts are frozen,
+for the module fan-
+out only; off for the
+service
+Database sources
+Opus 5.5 for the
+boundary protocols,
+the transaction and
+consistency model and
+the change stream;
+Sonnet 5.5 for the SQL
+composer, projection,
+adapter and tests
+xhigh for the
+boundaries and
+the change stream;
+high elsewhere
+No: the 30-minute
+packages in 18.1 are
+sequenced on the
+boundary, each with
+its own test
+Semantic and
+rerank
+Opus 5.5 for HNSW
+and the calibration
+gate; Sonnet 5.5 for the
+Core ML adapters and
+conversion scripts
+xhigh for HNSW
+(recall tests);
+high elsewhere
+No: device-bound
+measurement loops
+do not parallelize
+Chat
+Sonnet 5.5, with an
+Opus 5.5 review of the
+state machine and the
+prompt budget
+high
+No
+MLX runtime
+package
+Sonnet 5.5
+medium to high
+No: small, and bound
+to the Xcode and
+Metal build loop
+Pure SwiftUI field,
+tokens, models,
+modifiers
+Opus 5.5 (or Fable 5.1)
+for sentinel backspace,
+focus forwarding and
+token selection;
+Sonnet 5.5 for the rest
+xhigh for the field
+internals; high
+elsewhere
+No: sequential
+iteration against the
+UIKit reference with
+a human eye
+ZTronSearchEngine — Package Specification
+Page 54 of 58
+
+=== PAGE 55 ===
+The hours and points above assume this allocation (about 30% Opus-class, 60% Sonnet-
+class, 10% Haiku-class); ultracode on the two packages marked yes adds roughly 2 to 3
+times their points and takes 3 to 5 calendar weeks off the build.
+18.1 Database sources, 30-minute work packages
+The database-sources package (added 12 November 2026) is split into packages of at
+most 30 minutes of agent time, each ending in a passing test; the order is a dependency
+order, and the first eight need nothing but core. Total: 32 packages, 13 to 17 hours, 14 to 19
+points. Agent per package follows the §18 table: Opus 5.5 for 1 to 6 and 15, Sonnet 5.5 for
+the rest, xhigh on 2, 3 and 15, high otherwise, ultracode off throughout.
+Work package
+Agent
+Effort
+Ultracode
+Parity host, suite
+and CI matrix
+Sonnet 5.5 for
+comparators, scripts
+and the host; Haiku 5.5
+for cell-by-cell
+snapshot triage
+high ; medium for
+triage
+Yes: cells × scripts ×
+comparators are
+independent lanes,
+the largest calendar
+win
+Golden sets,
+relevance harness,
+benchmarks, CI,
+docs
+Sonnet 5.5; Haiku 5.5
+for fixture generation
+and doc comments
+medium to high
+Yes for golden-set
+and fixture
+generation; no for
+device benchmarks
+#
+Package
+Deliverable
+Minutes
+1
+SQL value types
+SearchSQL , SearchBindingValue ,
+SearchDatabaseLocation , SearchRow , doc
+comments
+20
+2
+Connection boundary
+SearchDatabase ,
+SearchDatabaseConnection : open, close,
+read and write transactions, change stream
+30
+3
+Reader and writer
+boundary
+SearchDatabaseReader ,
+SearchDatabaseWriter ,
+SearchDatabaseChange
+30
+4
+Source descriptors
+SearchStringEncoding ,
+SearchStringField , SearchTableSource ,
+SearchFilterColumn
+30
+5
+Resolver boundary
+LocalizedStringResolving ,
+SearchBundleID
+20
+ZTronSearchEngine — Package Specification
+Page 55 of 58
+
+=== PAGE 56 ===
+#
+Package
+Deliverable
+Minutes
+6
+Context sources
+SearchSource , SearchContext.sources ,
+localizedStrings , indexStorage ; items
+kept as the convenience
+30
+7
+Fake database
+Dictionary-backed boundary with
+transactions and a scripted change stream,
+for core tests
+30
+8
+Fake resolver
+Per-language string tables, missing-key cases
+20
+9
+SQL composer
+SELECT with quoting, predicate, LIMIT and
+OFFSET; snapshot tests
+30
+10
+Paged reader
+500-row pages, one read transaction per page,
+cancellation between pages
+30
+11
+Row projection
+Literal fields, language tags, kind, filters
+through Filter.init?(key:value:)
+30
+12
+Localized-key projection
+Active locale, fallback chain, localizedAlt ,
+unresolved-key policy
+30
+13
+Per-row encoding
+.perRow fields and mixed-field documents
+20
+14
+Mixed-context assembly
+Memory plus tables into one strategy; id-
+collision assertion
+30
+15
+Change stream
+Per-commit batching, re-read of changed
+rowids, upsert and remove, generation guard
+30
+16
+Refresh
+Whole-table fallback for changes without
+rowids; refresh()
+20
+17
+Index tables schema
+<prefix>_meta , _docs , _terms , _postings
+with projectionVersion
+30
+18
+Index write path
+Write through the write transaction; atomic
+generation swap
+30
+19
+Index read path
+Load into the in-memory structures; rebuild
+on version mismatch
+30
+20
+Adapter: connection
+SQLiteSearchDatabase over Connection ,
+documented @unchecked Sendable ,
+serialized calls
+30
+21
+Adapter: transactions
+read and write on transaction ; WAL
+recommendation; read-only locations
+20
+ZTronSearchEngine — Package Specification
+Page 56 of 58
+
+=== PAGE 57 ===
+In points, the whole build is 207 to 332: about 2 to 3 weeks of the plan's allowance in all, or
+17 to 42 points a week across the 8 to 12 calendar weeks, which is at most about a third of
+the plan in a typical week and never 100%. What the Ultra plan covers: Ultra is the
+renamed Max 20x plan at $200 per month; it includes 10 times the Pro plan's weekly
+usage, verified accounts have no five-hour limit, and the weekly limit applies across all
+models with a separate weekly limit for Fable (What is the Ultra plan?). The limits are
+shared between Claude and Claude Code, and usage credits can keep work going past
+the weekly limit at API rates (Use Claude Code with your Pro, Max, or Ultra plan).
+Anthropic no longer publishes the allowance in hours; the July 2025 figures for the same
+tier, about 240 to 480 Sonnet hours and 24 to 40 Opus hours a week, are historical and not
+current (Claude Code rate limits explained). Used only for scale, the Sonnet-class share
+#
+Package
+Deliverable
+Minutes
+22
+Adapter: expressions
+Expression<String> and Table to
+SearchSQL via template and bindings
+20
+23
+Adapter: hooks
+Update and commit hooks into the change
+stream
+30
+24
+Adapter: resolver
+Bundle -backed LocalizedStringResolving
+with per-language caching
+30
+25
+Tests: composer and
+reader
+Quoting, paging, cancellation, bindings pass-
+through
+30
+26
+Tests: projection
+Literal, localized and per-row mix, fallback
+chain, unresolved keys, filters, kinds
+30
+27
+Tests: mixed contexts
+Memory plus two tables; ranking parity with
+an all-memory context
+30
+28
+Tests: change stream
+Upsert, remove, refresh, batching, generation
+guard
+30
+29
+Tests: index-in-database
+Round trip, version mismatch, atomic swap
+30
+30
+Tests: adapter
+integration
+Separate target depending on SQLite.swift:
+connections, transactions, hooks,
+expressions, WAL
+30
+31
+Performance tests
+10k-row build, 500-row page, 100-row upsert
+against section 15.9
+30
+32
+Adapter README and CI
+job
+Host wiring sample, the adapter test target in
+CI
+20
+ZTronSearchEngine — Package Specification
+Page 57 of 58
+
+=== PAGE 58 ===
+(120 to 190 hours) fits in one or two weeks and the Opus-class share (55 to 80 hours) is
+the binding constraint at 2 to 4 weeks of allowance, which is where the 2 to 3 billing
+months come from.
+What moves the number: parallel worktree sessions or an all-Opus workflow need usage
+credits or a fourth month; the parity suite is the widest range, because each failing cell is
+an edit-measure cycle; shipping Qwen3-1.7B-4bit as-is without a smaller quant removes 5
+to 10 hours from the chat package. Check /usage in Claude Code for the actual bars
+rather than planning on the historical figures.
+ZTronSearchEngine — Package Specification
+Page 58 of 58

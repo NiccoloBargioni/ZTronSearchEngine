@@ -1,0 +1,769 @@
+{
+  "summary": "Cycle 2 resume: finish the five skeptic passes the usage limit cut off, from the auditors' checkpoint files",
+  "agentCount": 5,
+  "logs": [
+    "m06-tests-gates: 14 verdicts",
+    "m01-text-index: 12 verdicts",
+    "m05-adapters: 17 verdicts",
+    "m03-semantic: 14 verdicts",
+    "m02-query-service: 19 verdicts"
+  ],
+  "result": {
+    "cycle": 2,
+    "resumed": [
+      {
+        "module": "m06-tests-gates",
+        "verdicts": [
+          {
+            "id": "C2-m06-tests-gates-01",
+            "verdict": "confirmed",
+            "severity": "high",
+            "reasoning": "check() calls XCTExpectFailure(knownGap) with no closure, and only when measured > allowed. Every later failure in the same test becomes an expected failure: :535 after :534, and :327 after :323-326. Earlier assertions are unaffected. The strict option can never fire, because XCTExpectFailure is not called once a gap is within budget. Only the PERF line's '(within)' shows that the gap closed.",
+            "corrected_description": "As described. One nuance: the PERF print does show 'within' when a gap closes, but no test outcome changes. In the resumed run, catalog-sized scan creation came in at 8.202 ms against 8.333 ms, so the masking of :535 depends on load.",
+            "repro_result": "A scratch XCTest package (xfail/) with check() copied verbatim. An over-budget check with no known gap, placed after an over-budget known-gap check, was reported as 'matcher accepted ... Expected fail…"
+          },
+          {
+            "id": "C2-m06-tests-gates-02",
+            "verdict": "confirmed",
+            "severity": "high",
+            "reasoning": "Known gaps sit on the rebuild (:323-326), the new and replaced upserts (:396-397) and catalog-sized scan creation (:534), and the gap texts concede the reference device cannot meet them. Spec 15.1 fixes 2 s for the rebuild and 0.1 ms amortized per upsert. Milestone 1's gate includes the lexical latency targets, and nothing in 16 or 17 defers them. README:205 ('hold every measurement against its bu…",
+            "corrected_description": "",
+            "repro_result": "Unmodified release class at load about 6: rebuild 853.3 ms vs 333.3 ms (2.6x); upsert of new documents 0.050 ms and replaced 0.065 ms vs 0.017 ms (3.0x, 3.9x). All three pass only as expected failures…"
+          },
+          {
+            "id": "C2-m06-tests-gates-03",
+            "verdict": "partly",
+            "severity": "medium",
+            "reasoning": "Confirmed in code: the overhead is total minus 0.300 minus the measured encoding. It is held to an unscaled 20 ms rather than 20/6, on 5,000 items with a brute-force fake searcher, and the total is never asserted against 500 ms. Overstated: the 'engine adds' figure includes the overshoot of the 300 ms debounce Task.sleep. Under load, that timer latency can account for most of the 12.7-19.9 ms, so …",
+            "corrected_description": "The test holds an unscaled 20 ms residual, which also contains debounce-timer overshoot, and never asserts the 500 ms total. A 6x engine regression inside 20 ms passes, and so does a total over 500 ms (504.6 ms was seen passing). The 556-599 ms device extrapolation is not supported.",
+            "repro_result": "sleep_overshoot.swift at load about 225: debounce overshoot median 15.89 ms, max 24.19 ms; encoder overshoot median 11.51 ms. Resumed run, unmodified test at load about 6: 'worst 504.642 ms in all; th…"
+          },
+          {
+            "id": "C2-m06-tests-gates-04",
+            "verdict": "partly",
+            "severity": "medium",
+            "reasoning": "Core claim confirmed: the three tests time the consumer's own exit, which AsyncStream provides without the producer, and nothing checks that the producer stopped. Scope correction: removing every Task.checkCancellation in IndexSearcher makes testTheScoringLoopChecksCancellation fail, so only the onTermination removal goes uncaught. The implementation has both today, so this is a coverage gap, not …",
+            "corrected_description": "No test detects a producer that keeps running after the consumer cancels, for example with onTermination removed. Removing the IndexSearcher checkpoints is caught by testTheScoringLoopChecksCancellation. The 10 ms + full/4 bound is not a relaxation of the spec.",
+            "repro_result": "stream_cancel_skeptic.swift. With onTermination removed, the consumer exited in 0.0 ms while the producer's debounce slept the full 300 ms and the encode the full 5 s. With no checkpoints, the produce…"
+          },
+          {
+            "id": "C2-m06-tests-gates-05",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "Real: the Ledger compares each snapshot only with its own stream's query and first generation, so the doc comment's 'never yields again' is not checked by this test. Overstated on three counts. The spec property concerns published snapshots, which ResultsModelTests checks over 10,000 randomized changes. Engine-side suppression is asserted by testAnObsoleteProducerNeverYields. The failure scenario …",
+            "corrected_description": "The engine-level 10,000-change test checks consistency, not ordering. The ordering property is covered at the UI boundary and by testAnObsoleteProducerNeverYields, and the stated regression would not reopen late publication.",
+            "repro_result": ""
+          },
+          {
+            "id": "C2-m06-tests-gates-06",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "The auditor's failures came from runs at load 370 and 8.4 with 12 simulators booted. Re-measured at load 5.2-7.4 on 8 cores. RRF fusion passes (0.068-0.069 ms vs 0.083 ms allowed; wall time equals thread CPU time). Scaled by 6 that is 0.41 ms, under the 0.5 ms budget, so the 0.66 ms device extrapolation is refuted. One page of 500 rows passes in every run (4.0-6.35 ms vs 6.67 ms). Context creation…",
+            "corrected_description": "At moderate load the fusion and page targets pass with margin, and context creation almost always passes. The only check that still fails is the 15.9 incremental-upsert p95, intermittently and with a median under half the 8.33 ms allowance, because of scheduling tails in a busy-polled second-worst-of-40 measurement. The quality-targets job is plausibly flaky because of that check; no target is shown to be missed.",
+            "repro_result": "Unmodified release PerformanceTests in a scratch copy: 2 failures, creation 262.0 ms and upsert 20.8 ms; fusion 0.068 ms passed. testDatabaseSources repeated 5 times: creation 187-214 ms, page 4.2-6.3…"
+          },
+          {
+            "id": "C2-m06-tests-gates-07",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "Real: precision([]) is 1, the filterAndKind gate is precision alone, the hard-constraint test inspects only returned hits, and no gate uses the golden filterAndKind judgments. Overstated: an engine that returned empty lists for every kind or filter query would turn the unit job red through CoreCorrectnessTests (testFiltersAndKindTokensAreHardConstraints and others, not skipped in debug). What slip…",
+            "corrected_description": "The filterAndKind gate passes vacuously for empty lists, so a regression that empties some golden constrained queries is invisible to it. Emptying all of them is caught by CoreCorrectnessTests.",
+            "repro_result": "Probe at 5,000 and 100,000 distractors: 'gate value if every filterAndKind list were empty: 1.0000'. Today 0 of 69 constrained lists are empty, the source item is returned for all 69, and recall@10 is…"
+          },
+          {
+            "id": "C2-m06-tests-gates-08",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "Confirmed in code: distractor titles and keywords are pseudo-words; no pseudo-word starts with the first three letters of any lemma, synonym or Italian/German form; base-body lemmas appear only from word 24; synonyms and reserved translations never appear. The gated RELEVANCE rows are identical at 5,000 and 100,000. Refuted: 'adds no competition' and 'built never to match a golden query'. Distract…",
+            "corrected_description": "By construction the distractors are easy negatives that almost never outrank judged hits, so the gated means stop moving after 5,000. They still compete: they match through body and localized lemmas, typo neighbours and filters, fill more top-10 slots at 100,000, and move typo recall and several ungated NDCG figures. What the gates cannot see is title-level near-miss competition beyond the 420 golden items.",
+            "repro_result": "Probe (release, scratch copy). From 0 to 5,000 distractors, lexical typo recall falls 1.0000 to 0.9855. Queries with a distractor in the top 10, 5,000 to 100,000: lexical exactTitle 12 to 51 of 60, ty…"
+          },
+          {
+            "id": "C2-m06-tests-gates-09",
+            "verdict": "partly",
+            "severity": "medium",
+            "reasoning": "Confirmed: rerankedSnapshot (750 ms) is used by no test. No test asserts the 110 MB steady state or the 200 MB peak, and none checks for frames over 16.7 ms. testIndexingKeepsItsWorkingMemoryInBounds measures 125.4-125.5 MB of heap held for 100,420 in-memory items and asserts only < 200 MB. The in-memory segment's index sections alone are 41.6 MB (over 40 MB), plus 46.6 MB of stored documents. tes…",
+            "corrected_description": "No test asserts the 15.2 steady state or the 750 ms reranked snapshot. The in-memory quick-start configuration holds about 125 MB of heap for 100k items, over 110 MB, and is gated only at 200 MB. The mapped-index memory test passes only because it leaves out stored-document pages. The load-heap exclusion is immaterial (0.0 MB).",
+            "repro_result": "Probe: 'in-memory index of 100420 items: heap retained 125.5 MB'; 'compacted segment: index sections 41.6 MB, stored documents 46.6 MB'; 'heap allocated by load(from:) and kept: 0.0 MB'. Release suite…"
+          },
+          {
+            "id": "C2-m06-tests-gates-10",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "The CI gap is confirmed: adapter-tests.yml runs only debug `swift test` and `--sanitize=thread`, where DatabaseTargetsTests throws XCTSkip, and no workflow runs the adapter in release. Severity is lowered because the same 15.9 budgets run in CI against the in-memory fake, as spec 16 prescribes for core tests, and README:188-191 claims nothing about CI. 'One target is already failing' is intermitte…",
+            "corrected_description": "",
+            "repro_result": "SQLite release DatabaseTargetsTests built offline in a scratch copy and run 5 times at load about 7.3: upsert p95 OVER once (13.545 ms, p50 2.7 ms), within four times (2.674-5.447 ms); all other targe…"
+          },
+          {
+            "id": "C2-m06-tests-gates-11",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "Revised from the first run's 'confirmed', using the probe that run wrote for this finding. What stands: the semantic, cross-language and rerank gates are reached only with oracle fakes built from the queries' own lexicon. testRerankedHeadNDCG would pass with the fused order unchanged, because fused NDCG@10 is already at or above 0.85 and the 'never below fused' check holds by equality. The gated R…",
+            "corrected_description": "The rerank gates rest on oracle fakes, and the reranked-NDCG gate would pass with the fused order. 'Never below fused holds by equality' is true only at 100,000 distractors; at the default 5,000 the reranker improves NDCG@10 for paraphrase and cross-language. The fused-order bug is caught by SnapshotPipelineTests.",
+            "repro_result": "PROBE11 at 5,000 distractors (the size the debug unit job uses): the reranked top 10 differs in 45 of 483 queries; NDCG@10 rises for paraphrase (0.9696 to 0.9939) and crossLanguage (0.9745 to 0.9806).…"
+          },
+          {
+            "id": "C2-m06-tests-gates-12",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "withTaskGroup waits for every child, so the timeout works only for hangs that respond to cancellation. A lost continuation or a blocked thread in the directly awaited call hangs the test until the CI job timeout.",
+            "corrected_description": "The guard catches cancellable hangs, such as a stuck stream or a sleep, but not the lost-continuation or blocked-thread hangs its message names. Those are ended only by the CI job timeout.",
+            "repro_result": "with_timeout_skeptic.swift (verbatim copy of withTimeout): with a lost continuation and with a blocked semaphore, it was still waiting 3.1 s after a 0.5 s timeout. An unfinished AsyncStream and a one-…"
+          },
+          {
+            "id": "C2-m06-tests-gates-13",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "(a) The first two assertions hold without a 2,000 cap, but the limit-50 sub-check exercises the cap and PerformanceTests:143 fails if the default is raised, so 'cannot fail' is too strong. (b) True: only the directory's existence is checked, so a read is invisible. (c) The id is reused and 2 MB is tolerated, but the weak-reference check catches any registry that retains the service; only an id-key…",
+            "corrected_description": "(b) and (d) as described. (a) The cap mechanism and the default are covered by the limit-50 sub-check and :143. (c) Only a non-retaining, id-keyed leak would slip past the test.",
+            "repro_result": ""
+          },
+          {
+            "id": "C2-m06-tests-gates-14",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "setUpWithError skips all 17 PerformanceTests under DEBUG, and the README does not say how to run Release with testability on a device to record the baselines. ci.yml calls 15.5 and 18.6 'the floor and the current release', while parity.yml and ParityHost already target iOS 27.0, and 15.5 is not the package floor (.iOS(.v15)). These are documentation issues only.",
+            "corrected_description": "",
+            "repro_result": ""
+          }
+        ]
+      },
+      {
+        "module": "m05-adapters",
+        "verdicts": [
+          {
+            "id": "C2-m05-adapters-01",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "Kept from the first run. testSection159TargetsOverSQLite throws XCTSkip under #if DEBUG (DatabaseTargetsTests.swift:68-71) and adapter-tests.yml runs only debug `swift test` and `swift test --sanitize=thread`, so the real-SQLite 15.9 test skips in every CI run. Overstated: ci.yml quality-targets runs core PerformanceTests in release, and testDatabaseSources (PerformanceTests.swift:571-657) asserts…",
+            "corrected_description": "The real-SQLite 15.9 test always skips in CI (debug builds only), so adapter-side regressions of the 15.9 rows are not caught. The rows themselves are asserted in CI through core's in-memory fake (quality-targets job). The release-run failure is unverified and was against a host-scaled budget.",
+            "repro_result": "debugflag/ 1-test SwiftPM package: `swift test` and `swift test --sanitize=thread` both take the #if DEBUG branch ('Executed 1 test, with 1 test skipped'). Only `swift test -c release -Xswiftc -enable…"
+          },
+          {
+            "id": "C2-m05-adapters-02",
+            "verdict": "confirmed",
+            "severity": "high",
+            "reasoning": "Bridge: FetchOperation.download breaks its loop on a refused lane (:260-264), on the first resolve failure (:279-281) or on a contradicted blob, then group.cancelAll() (:284) cancels every resolve. The resolve's onCancel withdraws its waiter (ZTronAssetKit EngineCommands.swift:91-132). FetchCoordinator.detach cancels the session when the last reader leaves (:78-84). In ZTronAssetKit (read only), a…",
+            "corrected_description": "",
+            "repro_result": "Not run: it needs ZTronAssetKit's engine and a scripted origin. Confirmed by tracing the code and by the author's own doc comment and README. RealClientTests.swift:80-110 asserts only per-file resume …"
+          },
+          {
+            "id": "C2-m05-adapters-03",
+            "verdict": "confirmed",
+            "severity": "medium",
+            "reasoning": "Kept from the first run. SearchTableSource(table: View(...)) defaults name to the view's own name (SQLiteExpressions.swift:278); a VirtualTable gets the virtual table's name. Core subscribes with changes(in: Set(tables.map(\\.name))) and matches table.name == change.table (SearchService+Context.swift:504, :519, :571). ChangeTracker routes only the names the update hook reports. The hook reports wri…",
+            "corrected_description": "",
+            "repro_result": "hooks/main.swift (swiftc, SQLite 3.54.0, update hook installed): UPDATE through the view's base table -> ['UPDATE tools rowid=1']; through INSTEAD OF trigger -> ['UPDATE tools rowid=2']; FTS5 insert -…"
+          },
+          {
+            "id": "C2-m05-adapters-04",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "Real: the package ships no usable reference ModelAsset. Qwen3Asset exposes only the partial verifiedManifest, whose asset() throws missingChecksums, plus constructors that need a complete manifest. No complete manifest is in the repository, yet the README wiring loads 'qwen3-1.7b-4bit.manifest.json'. The integration tests use ModelAsset(files: []) for the runtime, which a host cannot do because Ch…",
+            "corrected_description": "The MLX package ships only a partial Qwen3 manifest. A host must download config.json and tokenizer_config.json at the pinned commit by some means other than the AssetKit bridge, which refuses descriptors without SHA-256, then run Scripts/pin-qwen3-asset.swift once to obtain a usable ModelAsset. The README documents this.",
+            "repro_result": "manifest/ (the repo's ModelAssetManifest.swift minus its import, the bridge's 64-hex check): 'verifiedManifest.asset() throws missingChecksums([\"config.json\", \"tokenizer_config.json\"])'; 'a host-made …"
+          },
+          {
+            "id": "C2-m05-adapters-05",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "Mechanism confirmed against mlx-swift-lm 3b339ad6 (3.32.3, read with git show). The prefill runs in TokenIterator's init (MLXLanguageModel.swift:424-442). LLMModel.prepare hands a prompt of at most 512 tokens to the iterator whole (`guard total > stepSize`), with no cancellation check. The iterator submits it with asyncEval, and the first next() blocks in .item until that forward ends. GenerationL…",
+            "corrected_description": "Cancelling during the prompt prefill leaves the runtime thread busy for the rest of the prefill chunk in flight, or the whole prompt forward for prompts up to 512 tokens, before .cancelled. No text streams meanwhile, and whether 15.6's 150 ms bound covers prefill is ambiguous; no test covers it.",
+            "repro_result": "Not runnable here (no Metal toolchain or device). Confirmed by reading mlx-swift-lm 3b339ad6 LLMModel.prepare, PrefillParameters.forEachChunk and TokenIterator.prepare/next, plus the adapter's code."
+          },
+          {
+            "id": "C2-m05-adapters-06",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "Confirmed: the test reads the current ri_phys_footprint only on .delta (Qwen3IntegrationTests.swift:525-538), so the prefill and the first forward are never sampled. Prefill transients are already released by the first delta: load sets MLX.Memory.cacheLimit to 32 MB (MLXLanguageModel.swift:209-210), and TokenIterator.next() calls MLX.Memory.clearCache() at tokenCount 0, right after the prefill. Wh…",
+            "corrected_description": "The 1.8 GB test samples the footprint only when visible deltas arrive, after MLX has already cleared the prefill's buffers. A peak during prefill, which is likely higher than decode but unmeasured, would go undetected.",
+            "repro_result": "footprint/main.swift (the test's physicalFootprint() copied, a stand-in generation with a 600 MB mmap'd prefill transient released before 16 deltas): inside prefill 1051 MB; 'peak as the test samples …"
+          },
+          {
+            "id": "C2-m05-adapters-07",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "Kept from the first run. For an INTEGER PRIMARY KEY renumbering, the update hook reports only the new rowid. Core re-reads rowid 30 and never visits state.rows[3], so tools#3 stays in the index. README.md:132-135 does not list a rowid change among the writes that need reportUnknownChanges. When the document id is not the rowid, the stale state.rows[3] mapping can later remove a live document if ro…",
+            "corrected_description": "",
+            "repro_result": "hooks/main.swift: `UPDATE tools SET id = 30 WHERE id = 3` -> ['UPDATE tools rowid=30']; `UPDATE tools SET id = id + 100 WHERE id IN (1, 2)` -> ['UPDATE tools rowid=101', 'UPDATE tools rowid=102']. The…"
+          },
+          {
+            "id": "C2-m05-adapters-08",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "validate(against:) checks only that the blob id is present and equal to the reference's (ModelAssetManifest.swift:159-173). Nothing relates it to the SHA-256, and nothing could without the bytes. The docs claim a tie: ModelAssetManifest.swift:141-142 says the blob id 'ties the new value to the pinned commit', and so do Qwen3Asset.swift:93-94 and README.md:243-244. The tie exists only in the pin sc…",
+            "corrected_description": "",
+            "repro_result": "manifest/: a manifest with invented SHA-256 ffff...ffff for config.json and tokenizer_config.json plus copied blob ids -> validate(against:) accepts; the asset carries config.json=ffffffff.... The sam…"
+          },
+          {
+            "id": "C2-m05-adapters-09",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "Kept from the first run. The bug is real but the mechanism differs. Under NSShowNonLocalizedStrings, Foundation uppercases the value it would have returned, which is the SENTINEL passed as value:, not the key. The sentinel check fails on case, and the resolver returns '\\u{1}ZTRONSEARCHENGINESQLITE.MISSING\\u{1}'. Core indexes it because it differs from the key. So the uppercased sentinel, not the r…",
+            "corrected_description": "With NSShowNonLocalizedStrings set, BundleLocalizedStringResolver returns the uppercased sentinel for missing keys, and core indexes it as that language's value (matching 'missing'). The raw key does not enter the index.",
+            "repro_result": "nslocal/: default -> resolver returns nil, not indexed; with -NSShowNonLocalizedStrings YES -> returns 'ZTRONSEARCHENGINESQLITE.MISSING' wrapped in \\u{1}, core indexes it: true; with value: nil -> 'TO…"
+          },
+          {
+            "id": "C2-m05-adapters-10",
+            "verdict": "partly",
+            "severity": "none",
+            "reasoning": "Kept from the first run. The trap at SQLiteBindings.swift:36-37 exists, but it is a documented precondition (:17-19). SQLite.swift 0.17.0 itself says 'Do not conform custom types to the Binding protocol' (Value.swift:25-30) and fatalErrors on the same value (Statement.swift:121). Its own conformances (Double, Int64, String, Blob, Bool, Int) are all mapped, and Date, Data and UUID reach bindings as…",
+            "corrected_description": "SearchBindingValue.init(_:) traps only for a Binding conformance that SQLite.swift's own documentation forbids and that SQLite.swift would trap on anyway. It is a documented precondition, not a defect.",
+            "repro_result": ""
+          },
+          {
+            "id": "C2-m05-adapters-11",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "load() runs performLoad in an unstructured Task (MLXLanguageModel.swift:183-187), so the caller's cancellation does not reach it. releaseModel() only sets pendingLoad = nil and never cancels it (:268-277), and the superseded context is dropped only after LLMModelFactory.load returns (:233-238). Cancelling would not help: mlx-swift-lm's async loadWeights runs the whole read on DispatchQueue.global …",
+            "corrected_description": "",
+            "repro_result": "loadunload/main.swift (the adapter's load, performLoad and releaseModel logic in an actor, the factory replaced by a 300 MB read on a global queue): unload() returned at 0.42 s at 128 MB, while the re…"
+          },
+          {
+            "id": "C2-m05-adapters-12",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "None of the three workflows builds or tests Adapters/ZTronSearchEngineAssetKit. adapter-tests.yml covers only the SQLite adapter, ci.yml covers root plus MLX, and parity.yml covers the parity host. No job checks out ZTronAssetKit, which the adapter needs as a sibling checkout or via ZTRON_ASSETKIT_PATH (Package.swift:16, 28). The root README lists the run only as a manual command (README.md:193). …",
+            "corrected_description": "",
+            "repro_result": ""
+          },
+          {
+            "id": "C2-m05-adapters-13",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "The behavior is confirmed: SamplingPlan.swift:154-157 lets the asset's max_new_tokens only lower the 512 default, against a literal reading of 14.2 ('the asset's generation_config.json wins when present'). 'Undocumented' is wrong: SamplingPlan.swift:118-119 and README.md:124-129 state that the asset can lower the default but never raise it. The choice is also defensible against core's own contract…",
+            "corrected_description": "The asset's max_new_tokens can only lower the 512 default. This is documented in SamplingPlan and the README and consistent with core's non-optional maxNewTokens budget. It departs only from a literal reading of 14.2 and cannot reach the reference model.",
+            "repro_result": ""
+          },
+          {
+            "id": "C2-m05-adapters-14",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "TTFT is taken at the first .delta, and the rate is (generated - 1) / (end - firstDelta), with generated from .usage, which counts hidden tokens (ChatCalibration.swift:22-24, 175-178, 201-206). Tokens with no visible text before the first delta push TTFT later and inflate the rate. The effect is small in practice, as the auditor says. The calibration request is fixed with thinking off, so Qwen3's t…",
+            "corrected_description": "",
+            "repro_result": "calibration/main.swift (the init arithmetic copied, a device at 2.0 s TTFT and a true 7.5 tok/s, 64 tokens): first visible delta at token 1 -> 2.00 s, 7.50 tok/s, fail (exact); token 3 -> 2.27 s, 7.75…"
+          },
+          {
+            "id": "C2-m05-adapters-15",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "Kept from the first run. EndToEndTests.swift:383-392 says three tests 'are expected to fail against the core this adapter was built with', but they carry no XCTExpectFailure and their doc comments describe passing behavior. Core now re-reads a table that changed during a read (SearchService+Context.swift:466-495, 516-528), so the comment is stale. The writes share the serial queue with the page re…",
+            "corrected_description": "",
+            "repro_result": ""
+          },
+          {
+            "id": "C2-m05-adapters-16",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "Kept from the first run and re-checked. The test differs from the README in two argument lists only. It uses BundleLocalizedStringResolver(bundles: [.main: strings]) (explained at :38) and an explicit SearchEngineConfiguration (:96-102). The README (:73, :76) uses BundleLocalizedStringResolver() and SearchService(context:), both of which compile with defaults. Every other line (schema, connect, Se…",
+            "corrected_description": "ReadmeSampleTests runs the README sample except for two argument lists (the resolver's bundles and the service's configuration). The guard misses drift only in those two calls.",
+            "repro_result": ""
+          },
+          {
+            "id": "C2-m05-adapters-17",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "README.md:54-55 says Package.swift uses an absolute path that 'becomes ../..', but Package.swift:20-23 already has path: \"../..\". README.md:251 says '149 tests', but the unit-test files (Qwen3IntegrationTests excluded) hold 150 no-argument test methods, all inside XCTestCase classes. The two #if blocks in MLXLanguageModelTests sit inside test bodies and remove no method. This is documentation drif…",
+            "corrected_description": "",
+            "repro_result": "Per-file counts of no-argument test methods: ChatCalibration 17, Executor/Cancellation 11, GenerationLoop 19, JSONConfig 6, LocalTokenizer 16, MLXLanguageModel 24, Qwen3Asset 17, SamplingPlan 19, Thin…"
+          }
+        ]
+      },
+      {
+        "module": "m03-semantic",
+        "verdicts": [
+          {
+            "id": "C2-m03-semantic-01",
+            "verdict": "partly",
+            "severity": "medium",
+            "reasoning": "The code facts are confirmed. SemanticLimits budgets are 80/60 MiB and labelled 'On-disk budget ... (specification section 15.5)'. Both adapters compare footprintBlocking of the .mlmodelc with sizeBudget before loading. ztron_conversion.py:373-374 says the default neuralnetwork route, the only one for iOS 15, stores 8-bit weights 'expanded when the model loads'. The 15.2 constants in ZTronSearchFi…",
+            "corrected_description": "The package checks only the model's on-disk size, against 80/60 MiB. It has no assertion or measurement of the loaded model's resident memory, the 200 MB semantic-query peak or the 800 ms reload (a section 16 gap). Its docs and conversion script present the on-disk figure as 'the budget', although the iOS 15 conversion route expands the 8-bit weights at load, so passing the check does not show the 15.2 loaded targets are met. The on-disk gate itself matches the spec's artifact-size framing (7.4, 17). This is a missing verification of a release target that needs a chosen model and the device, n…",
+            "repro_result": "Not runnable here: no model, no device, no coremltools. Verified by reading the code and grepping Sources and Tests: no use of embeddingModelBytes/rerankerModelBytes, and no 110 MB, 200 MB or 800 ms a…"
+          },
+          {
+            "id": "C2-m03-semantic-02",
+            "verdict": "confirmed",
+            "severity": "medium",
+            "reasoning": "This verdict is kept from the first run. QuantizedVectorStore.build checks vectors against `dimensions` but never compares quantization.dimensions with it. scratch and codes are sized by `dimensions`, while encode(_:into:scratch:) runs vDSP over parameters.dimensions. The only dimension check on the quantization is in the staging initializer, after the writes. The only internal caller, SemanticInd…",
+            "corrected_description": "",
+            "repro_result": "f02 (first run; binary re-run this session): build(... dimensions: 4, quantization: .uniform(dimensions: 384)) exits 137 in 3 of 3 runs, with heap corruption in _swift_release_dealloc under build(). T…"
+          },
+          {
+            "id": "C2-m03-semantic-03",
+            "verdict": "confirmed",
+            "severity": "medium",
+            "reasoning": "This verdict is kept from the first run. SemanticIndex.nearest only requires limit > 0. HNSWIndex.search clamps efSearch to 4,096 but passes limit through. HNSWGraph.search sets breadth = max(ef, limit), and HNSWWorkspace.reserve computes ef + 2 and allocates in proportion to it, never shrinking. The exhaustive path clamps with min(limit, liveCount). Core passes semanticNeighbours (default 50) or …",
+            "corrected_description": "",
+            "repro_result": "f03 (first run; re-run this session): HNSWIndex.search(limit: Int.max) and SemanticIndex.nearest(limit: Int.max) exit 133 (SIGTRAP in HNSWWorkspace.withScratch). exhaustiveSearch(limit: Int.max) retur…"
+          },
+          {
+            "id": "C2-m03-semantic-04",
+            "verdict": "confirmed",
+            "severity": "medium",
+            "reasoning": "This verdict is kept from the first run. WordPieceTokenizer.init splits the vocabulary with Character-based hasPrefix/dropFirst. A combining mark extends the second '#' into one grapheme, so '##'+mark pieces land in the initial table. split walks scalar boundaries and looks continuations up only in the continuation table, so any word that needs such a piece becomes [UNK]. Both the vocab.txt and to…",
+            "corrected_description": "",
+            "repro_result": "f04 (first run; re-run this session): hasPrefix(\"##\") is false for '##'+U+0902/U+093F/U+0E31/U+064E (2 Characters, 3 scalars) and true for U+00E9 and U+0930. Cased: tokenize(U+0915 U+0902) = [1] (refe…"
+          },
+          {
+            "id": "C2-m03-semantic-05",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "The mechanism is real on both paths. A host's SearchService.index runs core's upsertVectors -> SemanticIndex.upsert -> store -> HNSWIndex.insert(contentsOf:) in the host's own task. That insert checks cancellation at positions 128, 256 ... and keeps what it inserted. The throw skips `provisionalVectors = all` and the upsertedAtRuntime/removedAtRuntime updates. The refit rebuilds only from provisio…",
+            "corrected_description": "A cancelled upsert of more than 128 vectors is applied in part (the first 128 multiple) and later rolled back silently: at the provisional refit, the partial rows vanish and replaced ids revert to their old vectors; at a locale switch, the partial rows are not carried. The final state equals the 'refused' outcome core reported, so this is a state-consistency defect (contains, count and search temporarily show part of a refused batch) confined to the cancelled call, not a loss of vectors the host was told were stored. Repeating the upsert heals it.",
+            "repro_result": "f05: upsert 10; cancelled upsert of 200 throws CancellationError with 'count 138 contains(cancelled-000) true contains(cancelled-128) false'; upsert 120 gives count 258; upsert 130 (refit) gives 'coun…"
+          },
+          {
+            "id": "C2-m03-semantic-06",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "The code is as described. The test is documented 'Not a gate' and calls measure(count: 20_000, shape: .isotropic, efSearch: 256). measure() asserts coldP95 < ReferenceDevice.scaled(5 ms) = 0.833 ms on every call. ci.yml:53-56 runs the whole semantic test target with ZTRON_SEMANTIC_LARGE=1, so this test is in the gate step, asserting a configuration the spec does not budget. Measured here, it is th…",
+            "corrected_description": "The 'Not a gate' isotropic test carries the scaled 5 ms latency assertion at efSearch 256 (four times the spec breadth, 20k vectors), so it can turn the CI quality-targets step red for a non-gate reason. The failure is intermittent and depends on the host (1 of 8 runs here, while the real 100k gates had large margins), not systematic.",
+            "repro_result": "f06 (measure() and the TestSupport corpus copied verbatim, -O, Apple M3 at load 6-10). Isotropic 20k, efSearch 64: cold p95 0.614/0.577/0.588 ms, passes. Efsearch 256: cold p95 0.780, 0.879 (FAILS), 0…"
+          },
+          {
+            "id": "C2-m03-semantic-07",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "Both decoders compare the live/deleted count with Bitset.population, which counts every bit of the last word, including bits above the row count. HNSWIndex(store:graphAt:) compares tombstones only for 0..<store.count. upsert appends at ordinal = count, and HNSWGraph.insert only reserves words, so a phantom bit at the next ordinal tombstones the next appended row. The package's writers never set su…",
+            "corrected_description": "",
+            "repro_result": "f07, patching product-written files. Vector file of 50 rows with row 10's tombstone moved to bit 50: 'crafted file accepted: count 50, liveCount 49, ids.count 50, tombstoneCount 1'; upsert(late) gives…"
+          },
+          {
+            "id": "C2-m03-semantic-08",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "SearchableID equality is String equality, which is canonical equivalence. ordinal(of:) checks the overlay, a Swift dictionary (canonical), then baseOrdinal, a byte-wise binary search. build de-duplicates canonically and keeps the first spelling. Core's own id lookup (IndexSegment memcmp) and its fusion hash (fnv1a over UTF-8) are byte-wise, so LexicalIndex.resolve drops the spelling it does not ho…",
+            "corrected_description": "",
+            "repro_result": "f08: 'SearchableID NFC == NFD: true; same hash: true'. A store holding NFC: contains(NFC) true, contains(NFD) false. upsert(NFD): 'ordinal 2, replaced nil; liveCount 3' ('3 rows, 2 distinct Searchable…"
+          },
+          {
+            "id": "C2-m03-semantic-09",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "The contract at TokenizerLoader.swift:126-128 ('An unsupported file is refused rather than tokenized approximately') is contradicted by each cited case. byte_fallback is never read. Precompiled/Nmt map to an NFKC reproduction whatever the charsmap, and TextNormalization.swift:15-21 admits the map 'is not interpreted'. A WordPiece null normalizer falls back to uncased BERT normalization. An unknown…",
+            "corrected_description": "",
+            "repro_result": "f09 (product Tokenization files, crafted tokenizer.json; the HF library is not installed, so reference behaviour is the documented semantics). WordPiece with normalizer null: tokenize(\"Café\") = [5] ('…"
+          },
+          {
+            "id": "C2-m03-semantic-10",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "embedMissing embeds item text through encodeQuery, which calls provider.encode. CoreMLEmbeddingProvider.encode always prepends configuration.queryPrefix, documented as text put in front of every query. The protocol has a single encode, so nothing can ask for a passage embedding. Scope note: the package has no passage prefix anywhere and its manifest records only query_prefix, so 'pipeline vectors …",
+            "corrected_description": "",
+            "repro_result": "f10 (full module copy, the real CoreMLEmbeddingProvider with a scripted loader that records the model's input ids, queryPrefix 'query: '): embedMissing([(\"item-1\", \"red apple\")]) sends '[CLS] query : …"
+          },
+          {
+            "id": "C2-m03-semantic-11",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "setLocale proceeds because the resolved tag differs from activeSet. load logs the localized failure and opens the base; with no base graph file it runs HNSWIndex.build. The result is then discarded by `guard loaded.languageTag != activeSet`, inside exclusively, which holds back upserts. Core calls semantic.setLocale only on a real change of resolved languages (SearchService.swift:892-901), so the …",
+            "corrected_description": "",
+            "repro_result": "f11 (base of 5,000 64-d vectors, garbage vectors.de.ztvec). Base without graph: each setLocale(de) takes 0.333/0.334/0.335 s, stays on base, and an upsert issued 1 ms into a switch returns after 0.333…"
+          },
+          {
+            "id": "C2-m03-semantic-12",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "remove records in removedAtRuntime only what the active set held, because index.remove(contentsOf:) returns only those ids. An id held only by another locale's set is therefore live again after setLocale. Core forgets removed items and rebuilds its lexical index on a locale change, so resolve drops the id: the effect is a wasted neighbour slot and wrong contains/count. It needs per-locale sets who…",
+            "corrected_description": "",
+            "repro_result": "f12: base with item-0..99, 'it' with the same plus 'it-only', base active. remove([it-only, item-5]), then setLocale(it): 'active it, count 100, contains(it-only) true, contains(item-5) false'; neares…"
+          },
+          {
+            "id": "C2-m03-semantic-13",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "The deviation is real. requested = min(n*4, max(n, 200)) = 200 for constrained queries, and HNSWGraph.search widens the breadth to 200, against section 10's 'Bounded work: ... 50 HNSW neighbours' and 7.3's top 50. Neither 16 nor 17 relaxes it, and section 8 ('hard constraints applied before retrieval') would still return 50. The departure is documented in SearchLimits, and HNSWRecallTests measures…",
+            "corrected_description": "Constrained queries request 200 HNSW neighbours (breadth 200), exceeding the section 10 bound of 50. The departure is documented in SearchLimits, and this query shape is not covered by the latency gate. The measured extra cost is about 1.5x the budgeted search, not 3x, and fits the scaled budget on an M3.",
+            "repro_result": "f13 (HNSWRecallTests corpus and cold-cache protocol, diffuse 100k x 384, two rounds). Limit 50: cold p50 0.292/0.301 ms, p95 0.399/0.429 ms. Limit 200: cold p50 0.443/0.442 ms, p95 0.562/0.563 ms (all…"
+          },
+          {
+            "id": "C2-m03-semantic-14",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "Scripts/ holds only generate_ui_assets.py and semantic/. The docs, usage lines and require() exit message point at Scripts/convert_embedding_model.py, Scripts/convert_cross_encoder.py, Scripts/requirements.txt and Scripts/test_vocabulary_pruning.py, and none of those paths exists; README.md:127 is correct. The CoreMLCrossEncoder doc says the passage gives way, but PairTruncation is longest-first a…",
+            "corrected_description": "",
+            "repro_result": "test -e: 'no such file' for all four documented paths. f14: PairTruncation.lengths(first: 200, second: 10, budget: 125) gives 'query keeps 115, passage keeps 10'. Grep of .github/workflows finds Pytho…"
+          }
+        ]
+      },
+      {
+        "module": "m01-text-index",
+        "verdicts": [
+          {
+            "id": "C2-m01-text-index-01",
+            "verdict": "partly",
+            "severity": "medium",
+            "reasoning": "Mechanism confirmed. check() calls the closure-less XCTExpectFailure(knownGap) when a budget is over (PerformanceTests.swift:77-81), and that form absorbs every later failure in the method. Both masked assertions are real: :535, the catalog-sized scan-query gate, comes after the :534 creation gap; :327, the rebuild liveness assert, comes after the :323-326 rebuild gap. On this machine the rebuild …",
+            "corrected_description": "The closure-less XCTExpectFailure in check() masks every later failure in the test method. In testFullLexicalRebuildOnLocaleChange the rebuild gap fires on every run here (674-820 ms vs 333 ms allowed), and by the project's own estimate it would on the reference device too, so the only timed check that queries are not blocked by a locale rebuild (:327) is dead. In testSmallContextsOfCatalogSizedDocuments the 15.8 query gate (:535) is masked only on runs where creation exceeds 8.33 ms, which is borderline and load-dependent. Neither masked assertion would fail today (slowest query during the re…",
+            "repro_result": "XCTest probe (S/xctexpect, mirrors check()): testA (gap fires, then a non-gap check fails) PASSED with 'XCTExpectFailure: matcher accepted Assertion Failure at ExpectTests.swift:18 ... Reason: (creati…"
+          },
+          {
+            "id": "C2-m01-text-index-02",
+            "verdict": "partly",
+            "severity": "medium",
+            "reasoning": "Spec budgets checked: 15.1 'Full lexical rebuild on locale change 2 s, in the background, never blocking a query' (also 5 rule 7); page 43 'Incremental upsert, per document 0.1 ms amortized'; 15.8 '500 documents 50 ms' context creation. Sections 16 and 17 do not relax them; 17 makes the reference device the gate for milestone 1, which covers the lexical latency targets and the 15.8 timings. With t…",
+            "corrected_description": "By the project's own off-device estimate (budget / 6), the locale rebuild (100k items) and incremental upsert miss their spec budgets on every run. Rebuild: 525-820 ms against 333 ms allowed, 2.0-2.5x over; on the device that means roughly 4.5-8 s instead of 2 s. Upsert: 0.050-0.066 ms per document against 0.017 ms, 3-4x over. Both are recorded as knownGap expected failures, so the tests pass. Scan-context creation for 500 catalog-sized documents sits at its limit (7.7-8.1 ms against 8.33 ms) and was within budget in my runs; it is not a consistent miss.",
+            "repro_result": "Harness on an Apple M3, load average 4.7-7.8. Rebuild setLocale it/de: 589/820, 667/674 and 525/742 ms wall, against 333.333 ms allowed; process CPU 1.7-2.6 s per rebuild. Upsert per document: replace…"
+          },
+          {
+            "id": "C2-m01-text-index-03",
+            "verdict": "confirmed",
+            "severity": "medium",
+            "reasoning": "IndexSegment.init (IndexSegment.swift:107-196) checks magic, version, section bounds, fixed section sizes, the power-of-two id table and the kind/filter/metadata tables. It never checks term, id, store, filter or forward offsets, posting bytes, kind or filter ordinals, or id-hash entries, and the readers use all of these unchecked. ordinal(ofID:) loops with `while true` (:428-445). Line 137, `Int(…",
+            "corrected_description": "",
+            "repro_result": "Persisted a 3-document .files context, patched the file, then relaunched. documentKinds[0] = 0xFFFF: init returned; first query 'apple' -> signal 5, 'Index out of range' in IndexSearcher.rankedList <-…"
+          },
+          {
+            "id": "C2-m01-text-index-04",
+            "verdict": "confirmed",
+            "severity": "medium",
+            "reasoning": "fingerprint(of:) (SearchService+Context.swift:181-199) mixes only id, kind, the UTF-8 byte counts of searchText and title, and updatedAt. validate (LexicalIndex.swift:204-206) compares only that fingerprint. The default indexStorage is .files in Caches (SearchContext.swift:23-28), so every .automatic memory context over 500 items, and every .indexed one, takes the reuse path by default. The public…",
+            "corrected_description": "",
+            "repro_result": "Mode 'stale'. Launch 1: 600 tools with keyword 'alpha' and platform ios, persisted. Launch 2: t0 moved to mac with keyword 'omega', and t1's text changed 'generic' -> 'special' (same length). Results:…"
+          },
+          {
+            "id": "C2-m01-text-index-05",
+            "verdict": "confirmed",
+            "severity": "medium",
+            "reasoning": "SearchLimits fields are public vars, and only the init clamps them (SearchEngineConfiguration.swift:26-56). Nothing re-clamps on the way to use: QueryPlanner.swift:142 passes limits.prefixExpansions straight through, and IndexSearcher.swift:673 reads lexicalCandidates. TopSelector.accepts (QueryPlanner.swift:198-200) reads elements[count-1] when limit <= 0 and the list is empty, and IndexSearcher.…",
+            "corrected_description": "",
+            "repro_result": "Release harness. prefixExpansions = 0, indexed: 'cherry' ok; 'ap' -> signal 5, frames TopSelector.accepts <- IndexTermSource.prefixExpansions <- QueryPlanner.plan. Same setting on scan: 'ap' -> [], 'a…"
+          },
+          {
+            "id": "C2-m01-text-index-06",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "Real exactly as described. SearchableID synthesizes ==/hash on String, which means canonical equivalence, and defines `<` on UTF-8 bytes (Searchable.swift:9-38). Batch dedup (LexicalIndex.swift:378-392) and ScanEngine use dictionary keys, while segment lookups hash and memcmp raw bytes (IndexSegment.swift:428-445, fnv1a in ByteCoding.swift:175-187). Projection passes searchID through unchanged (Se…",
+            "corrected_description": "As described: NFC and NFD forms of the same id are equal as SearchableIDs, but the lexical index identifies documents by bytes. The index misses contains/remove for the other form, keeps two documents (and returns two hits with equal ids) when the forms arrive in separate batches, and disagrees with the scan strategy, which merges them. `<` is not consistent with `==`. This is an edge case that needs ids arriving in mixed Unicode normalization, so it is low rather than medium.",
+            "repro_result": "Mode nfc-nfd: 'nfc == nfd: true; nfc < nfd: false; nfd < nfc: true; equal hashValue: true; Set count: 1'. Index holding NFD: contains(NFD) = true, contains(NFC) = false, document(for: NFC) = nil. Afte…"
+          },
+          {
+            "id": "C2-m01-text-index-07",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "`start + max(0, limit)` is computed with trapping arithmetic in ScanIndex.swift:76-77 and SearchService.swift:465-466. SearchService.swift:837 computes `limit * 4`, and :858-859 compute `limit + 1`. SearchQuery.limit is an unclamped public Int (SearchQuery.swift:34), SearchCursor(offset:) is public, and results(for:) honours query.cursor (SearchService.swift:379). So the natural host sequence reac…",
+            "corrected_description": "",
+            "repro_result": "ScanIndex: limit 2 -> nextCursor offset 2. The same query with limit .max and that cursor -> signal 5 'arithmetic overflow' in ScanIndex.snapshot(for:generation:contextID:). Indexed service: limit .ma…"
+          },
+          {
+            "id": "C2-m01-text-index-08",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "The match-all path (IndexSearcher.swift:680-692) admits live documents in segment and ordinal order, scores them all 1, and stops at the 2,000 limit. The ranked list is then sorted by id, but only over the admitted set. Segment order follows merges (install reorders segments by size), so the first page depends on merge history, and it differs from the scan strategy, which has no admission bound. I…",
+            "corrected_description": "",
+            "repro_result": "Mode matchall: 100 ios documents a000-a099, then 2,000 ios documents m0000-m1999, in segments [100, 2000]. Filter-only page 1 = a000..a004. Added 3 batches of 100 mac documents (the matching set is un…"
+          },
+          {
+            "id": "C2-m01-text-index-09",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "The parser caps parsed clauses at 64 (QueryParser.swift:37, :63). For unspaced-script words that miss the vocabulary, the planner adds one plan clause per matched fallback bigram (QueryPlanner.swift:150-157). Clauses at index 64 or above get mask bit 0 (IndexSearcher.swift:899, ScanEngine.swift:189), and ranking keeps only documents with `matched != 0` (IndexSearcher.swift:928-929). Required claus…",
+            "corrected_description": "",
+            "repro_result": "Mode clauses-public (ScanIndex and SearchService(context:) only). Query: 86 distinct katakana; NLTokenizer gives 4 words [25,25,25,11] with bigram fallbacks [24,24,24,10]. Document 'head' holds bigram…"
+          },
+          {
+            "id": "C2-m01-text-index-10",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "Spec 5 rule 4 (page 9) prescribes exactly 'NFKC, then folding(options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive], locale:)'. Section 16 ('Unicode and diacritic normalization, including NFKC folding and width folding') and section 17 allow no extra step. SearchNormalizer.swift:28-34 maps U+0131 to 'i' after folding, on purpose, as its doc comment (:8-13) says. The recipe leaves ı…",
+            "corrected_description": "",
+            "repro_result": "Mode fold. Recipe: ı -> U+0131 under nil, en and tr. Engine: ı -> U+0069 under all three. 'kır': recipe 'kır', engine 'kir' in every locale. Recipe under en: 'IŞIK' -> 'isik' but 'ışık' -> 'ısık'. Rec…"
+          },
+          {
+            "id": "C2-m01-text-index-11",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "Two of the three sub-claims are confirmed. Locale-change test (InternationalizationTests.swift:233-283): the probe item reads the same in every locale, and nothing records or times whether the 20 queries overlapped the rebuild, so the test would pass even if every query waited for it. Corrupt-file test (StrategyParityTests.swift:187-199): the bytes are i*31 mod 256, so the first byte is 0x00 again…",
+            "corrected_description": "The locale-change i18n test cannot tell the old index from the new one and never shows that queries overlapped or were not blocked by the rebuild. The corrupt-file test only covers the magic check, and no test feeds a corrupted valid segment. The trigram losslessness test draws an unseeded sample each run, but any failure prints its query and candidate, so it can be reproduced from the log.",
+            "repro_result": "Code reading and grep. The garbage file starts 0x00, 0x1F, 0x3E... against magic 'ZTSI' (IndexSegment.swift:41). grep over Tests/ for load(from:), IndexSegment(data:) and byte patching found no test t…"
+          },
+          {
+            "id": "C2-m01-text-index-12",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "The comment at IndexSearcher.swift:694-695 says 'heaviest field first', but :773 loops `for field in 0..<SearchField.count` in fixed ordinal order: title, keywords, caption, text, localizedAlt, ocrText (SearchDocument.swift:4-10). That order equals the default weights 8/4/2.5/1/0.5/0.5 (RankingProfile.swift:145-152; spec 7.1 calls them defaults), so the comment holds only for the default profile. …",
+            "corrected_description": "",
+            "repro_result": "Mode fieldorder (LexicalIndex.upsert + SearchService(index:profile:)): 2,500 documents with 'zeta' in the title plus 5 with 'zeta' only in ocrText, under a profile of ocrText 50 / title 0.01. Indexed …"
+          }
+        ]
+      },
+      {
+        "module": "m02-query-service",
+        "verdicts": [
+          {
+            "id": "C2-m02-query-service-01",
+            "verdict": "partly",
+            "severity": "high",
+            "reasoning": "Every mechanic reproduces. adoptPersistedIndex builds its expectation with fingerprint \"\", so only versions, languages and the model are checked. When the adopted count exceeds the scan threshold, rebuildLocked returns before reading any table. A deliberate design (doc at :671-672; DatabaseSourceTests asserts 'rows not re-read') that contradicts the public docs at :6-11 and :47. The spec (section …",
+            "corrected_description": "As described (offline inserts, updates and deletes invisible; mixed-context memory items replaced by the persisted ones; .database + .default never re-persisted after incremental changes). Also SearchService.deinit cancels the 1 s persist, so releasing a context within 1 s of a live change drops that change from the file. Severity high rather than critical: the index heals on refresh(), a locale change, or the first change to the table while a context is alive.",
+            "repro_result": "S/f01, S/f01b (S = /private/tmp/claude-501/-Users-admin-Documents-ZTronSearchEngine/9d753227-1867-465a-bab4-eb68ece6e12f/scratchpad/cycle-2/m02-query-service-skeptic). .files, id tools-screen, 900 row…"
+          },
+          {
+            "id": "C2-m02-query-service-02",
+            "verdict": "confirmed",
+            "severity": "high",
+            "reasoning": "The fingerprint mixes only id, kind, searchText UTF-8 length, title UTF-8 length and updatedAt. When the file validates, prepare memory-maps it, skips projection and starts no background work. Only an internal doc comment mentions refresh(); the public SearchIndexStorage and SearchContext docs and the README say nothing, and init(id:items:) defaults to .files in Caches. Section 6 and 9.1 rule 6 ke…",
+            "corrected_description": "",
+            "repro_result": "S/f02: fingerprints equal and the adopted index misses the edit for: keywords alpha->omega ('omega' -> [], fresh -> special); same-length text edit anchor->zebras; same-length title edit; an added 'it…"
+          },
+          {
+            "id": "C2-m02-query-service-03",
+            "verdict": "partly",
+            "severity": "medium",
+            "reasoning": "The test ledger only compares a stream's snapshots with that stream's own query and first generation, so it cannot see a late publication. Proven by mutation: removing the publish-time isCurrent guard leaves every assertion of the 10,000-change test green while the library emits 692 stale snapshots. testAnObsoleteProducerNeverYields does not catch this mutant either. Severity is medium, not high: …",
+            "corrected_description": "As described. Impact: the 15.4 and section 11 gate is unverified against regressions. Currently correct code and the UI model's own check prevent stale results today.",
+            "repro_result": "S/f03, test logic verbatim, seed 2024. Mutant: mismatched 0, published 2228, finals 1184, probes failing 0, last final true; ground truth 692 emits after a newer query. Unmodified: all pass. DYLD_PRIN…"
+          },
+          {
+            "id": "C2-m02-query-service-04",
+            "verdict": "confirmed",
+            "severity": "medium",
+            "reasoning": "A keyed field writes its base-language string into searchLocalizations[base]; SearchProjector then lets that localization win and moves the shadowed base surface (literal plus key string) to localizedAlt. This happens even under the base locale with no secondary languages, which violates 9.2 rule 3 and 15.9's identical score and order for a row and the same item in memory. Only same-role mixes are…",
+            "corrected_description": "",
+            "repro_result": "S/f04, locale en, no secondary, 30 competing filler docs. Text role: row text='Frozen Harbor', localizedAlt=[literal+key]; 'lanterns' row rank 31 (localizedAlt) vs memory rank 1 (text). Keywords role:…"
+          },
+          {
+            "id": "C2-m02-query-service-05",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "send() never bumps `use` and the lifecycle stays .ready until line 477, so an idle timer that expires during retrieval or assembly unloads the model and cancels the turn. The race reproduces with a realistic window (a semantic phase under its cap) rather than the auditor's slowed countTokens. Severity is low, not medium: only a send landing in the roughly 0.05-0.7 s retrieval window at the 120 s b…",
+            "corrected_description": "As described, but rare by construction: the vulnerable window is one turn's retrieval and assembly time at the idleUnload boundary. Severity low.",
+            "repro_result": "S/f05, idleUnload 0.6 s, StubSemantic 0.25 s. Send at +451 ms: CancellationError after 187 ms, sources 0, unloadCalls 1, generateCalls 0. Controls (send at +103 ms; no semantic delay) finish normally …"
+          },
+          {
+            "id": "C2-m02-query-service-06",
+            "verdict": "confirmed",
+            "severity": "medium",
+            "reasoning": "(a) unload() during .loading sets .onDisk and unloads, but the suspended load resumes and settles .ready with the runtime loaded. (b) ensureLoaded loads without setting `preparation`, so a concurrent prepare() starts a second load. A memory warning during the roughly 1 GB load is the likeliest moment for one, and losing it breaks 14.4 and 15.7.",
+            "corrected_description": "",
+            "repro_result": "S/f06, load 300 ms, real memory-warning notification. (a) Just after the warning: onDisk, unloadCalls 1. After the load: ready, isLoaded true. A control warning while ready unloads for good. (b) At +2…"
+          },
+          {
+            "id": "C2-m02-query-service-07",
+            "verdict": "confirmed",
+            "severity": "medium",
+            "reasoning": "PromptAssembler.truncate keeps the longest prefix of whitespace-separated words, so an unspaced CJK caption or text is dropped whole even though most of the 80-token budget remains. ChatTests cannot see it because the fake counts whitespace words.",
+            "corrected_description": "",
+            "repro_result": "S/f0708, real truncate, one token per character. ja: 167 tokens -> '[map:harbor] 凍った港,' (17 tokens). zh: 122 -> 17 tokens. Long ja title -> '[map:harbor]' only. en: cut cleanly to 80 tokens."
+          },
+          {
+            "id": "C2-m02-query-service-08",
+            "verdict": "confirmed",
+            "severity": "medium",
+            "reasoning": "consume() re-checks the whole prefix as a kind at every ':', so 'map:m' fails and the bracket is released as text before marker(in:) can split on the first colon. Ids with ':' come from the engine's own .prefixed identity, and the prompt tells the model to cite them verbatim. This violates 14.3 rule 3.",
+            "corrected_description": "",
+            "repro_result": "S/f0708. 'See [map:m:harbor] and [map:harbor].' -> [.text('See [map:m:harbor] and '), .citation(harbor), .text('.')]. '[tip:tip:42]' leaks. A marker split across deltas leaks. Control '[tool:tools#7]'…"
+          },
+          {
+            "id": "C2-m02-query-service-09",
+            "verdict": "confirmed",
+            "severity": "medium",
+            "reasoning": "SearchDateParser constructs an ISO8601DateFormatter per option set per value. The path is reached in the reference setup: SQLite.swift stores Date as TEXT 'yyyy-MM-dd'T'HH:mm:ss.SSS' and the adapter maps it to .text. That costs one construction per row, and two for CURRENT_TIMESTAMP text. It breaches the 15.9 page and context budgets by more than an order of magnitude under the README's Mac scalin…",
+            "corrected_description": "",
+            "repro_result": "S/f09, verbatim copy (diff clean), -O, M3 with load average about 5-6. SQLite.swift text: 236-242 us/value (118-121 ms per 500-row page). CURRENT_TIMESTAMP: 379-381 us (about 190 ms per page). Cached …"
+          },
+          {
+            "id": "C2-m02-query-service-10",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "The `0.010 + full / 4` bound is as described, but it is moot. `worst` measures the consumer task's exit after cancel(), and cancelling the consumer ends its AsyncStream iteration at once, so the value is about 0 whatever the producer does. The stated failure scenario is wrong: with checkpoints every 100,000 postings, testTheScoringLoopChecksCancellation fails, because its 4,000-item search does on…",
+            "corrected_description": "The cancellation-latency assertion is vacuous: it times the consumer's exit, which never waits for the producer. testTheScoringLoopChecksCancellation only bounds the spacing by the work of a 4,000-item heavy search (15,188 units). Spacing up to about 15,000 postings (15x sparser) keeps both tests green; 100,000 does not.",
+            "repro_result": "S/f10, test logic verbatim plus a producer-side probe (index-actor hop after cancel). Test metric 0.02-0.09 ms in every build. Spacing 1,000: both tests PASS, producer worst 4.2-4.9 ms. 15,000: both P…"
+          },
+          {
+            "id": "C2-m02-query-service-11",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "The row projector resolves every keyed field in every catalog language. The projector only reads the active chain and secondary languages (all of them only under includesAllLanguages), and a locale change re-reads the rows anyway. The cost is linear and all of it is discarded in the common configuration.",
+            "corrected_description": "",
+            "repro_result": "S/fsearch arg 11, debug build, 2,000 rows x 3 keyed fields, cached fake resolver. 2 languages: ready in 130-144 ms. 30 languages: 349-465 ms. localizedAlt of notes#1 is empty in both."
+          },
+          {
+            "id": "C2-m02-query-service-12",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "The row item has a single base searchLanguage, set only when all literal tags and key base languages agree. A 'fr' literal next to an 'en'-base key therefore gets a nil field language. That language feeds the NLTokenizer hint and the folding locale, and leaves matchedLanguage nil, contrary to 9.2 rule 3. Practical impact is small: mostly segmentation-sensitive scripts and Turkish/Azeri casing.",
+            "corrected_description": "",
+            "repro_result": "S/fsearch. Literal fr + keyed title: languages.text=nil, 'hôtel' matchedLanguage=nil. Control literal en: languages.text=en, matchedLanguage=en."
+          },
+          {
+            "id": "C2-m02-query-service-13",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "The clamps (topN 1...32, blend 0...1, maximumPins 0...3, retainedHits >= 1) run only in initializers. The properties are public vars and the README configures profiles by mutation. Out-of-range values exceed the 7.4 and section 8 ceilings, and negative values trap in prefix(_:).",
+            "corrected_description": "",
+            "repro_result": "S/fsearch. Init clamps topN 64->32, but assignment keeps 64; blend 5 kept; maximumPins 10 kept; retainedHits -1 kept. topN=64 sent [64] passages to the cross-encoder. retainedHits=-1 and topN=-1 queri…"
+          },
+          {
+            "id": "C2-m02-query-service-14",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "rerankPhase accepts any score array of the right length, and reranked() min-max normalizes it with no finiteness check. +inf zeroes every finite score and becomes NaN itself; a NaN breaks the sort and the score mapping. The snapshot is published with no degraded flag.",
+            "corrected_description": "",
+            "repro_result": "S/fsearch, direct reranked(). Control: d1 leads. [.., inf, ..]: d0=0.0500 d1=0.0490 d2=nan (rerank lost). [.., nan, ..]: d2=0.0830, above the head's top 0.05. End to end with FakeReranker returning +i…"
+          },
+          {
+            "id": "C2-m02-query-service-15",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "ZTronSearch stores `{ await service.unload() }`, which captures the ChatService strongly, as the search service's memoryWarningPredecessor; nothing clears it. ChatService holds the search service strongly, so a cycle forms and releasing the facade frees neither. Low because the facade is documented as wired once, but it breaks 9.1 rule 6 for per-screen use.",
+            "corrected_description": "",
+            "repro_result": "S/fchat. With chat: predecessor installed true; search service freed false, chat service freed false. Without chat: search service freed true."
+          },
+          {
+            "id": "C2-m02-query-service-16",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "The mechanism is real: the turn takes the generation lock, then parks in withCheckedContinuation until runPreparation's defer, after both fetch and load, and task cancellation does not resume it. The impact is overstated. No session can generate before the fetch and load end anyway, so other sessions are not delayed. The UI model's cancel() ends its consumer and clears isGenerating at once.",
+            "corrected_description": "A turn cancelled through ChatService.cancel(_:), or superseded, while waiting for a fetch or load keeps its stream and the generation lock until the preparation ends. Only hosts that wait for that stream to end after cancel(_:) see 'stop' lag. Other sessions are not delayed beyond the download they need anyway, and the shipped UI's stop is immediate.",
+            "repro_result": "S/fchat, 2 s fake download. cancel(a) at +322 ms: A's stream ended at +2063 ms with CancellationError, 1741 ms after the cancel. Session B, sent right after, finished at +2063 ms, the same moment the …"
+          },
+          {
+            "id": "C2-m02-query-service-17",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "SearchQuery.limit is an unvalidated public var. With limit 0, end == start, so nextCursor = SearchCursor(offset: start) whenever documents remain, and page(after:) returns the same cursor forever. A host that pages until nil never terminates; the UI's one-page-per-cursor guard would stop it.",
+            "corrected_description": "",
+            "repro_result": "S/fsearch, 30-item scan context, limit 0. Final: hits 0, next cursor offset 0. Pages 1-5: hits 0, cursor offset 0 each. Control limit 10: cursor offset 10."
+          },
+          {
+            "id": "C2-m02-query-service-18",
+            "verdict": "confirmed",
+            "severity": "low",
+            "reasoning": "PromptAssembler sums content tokens only. The MLX adapter's countTokens encodes content without special tokens, while generation renders the chat template and budgets the reply on the rendered prompt. Past about 12 messages the rendered prompt exceeds contextWindow - maxNewTokens - 64 (14.3 rule 2), and the reply is shortened. The window itself stays guarded by promptTooLong. The test measures the…",
+            "corrected_description": "",
+            "repro_result": "S/fchat, real assembler, window 4096, maxNewTokens 512, margin 64. 58 messages, content 3502 against budget 3520. A ChatML rendering adds about 293 template tokens, giving about 3795 (275 over budget)…"
+          },
+          {
+            "id": "C2-m02-query-service-19",
+            "verdict": "partly",
+            "severity": "low",
+            "reasoning": "The public case appears only at its declaration, so it is dead code. But the 'silent' claim is overstated. DiagnosticReporter.debug limits only the os_log line to DEBUG builds and forwards unresolvedLocalizationKey to the host's diagnostics sink in every build. Spec 9.2 rule 3 itself prescribes this handling for an unresolved key ('indexes nothing ... logged in debug'). The spec names no such erro…",
+            "corrected_description": "SearchError.missingLocalizedStringResolver is documented but never produced. A missing resolver indexes nothing for keyed fields, as spec rule 3 prescribes for unresolved keys, and is visible only through the diagnostics sink (os_log in debug). API hygiene and discoverability issue, low.",
+            "repro_result": "grep over Sources, Tests and README: the only occurrence is SearchHit.swift:135. No driver needed."
+          }
+        ]
+      }
+    ],
+    "missing": []
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Break"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "break:m06-tests-gates",
+      "phaseIndex": 1,
+      "phaseTitle": "Break",
+      "agentId": "ae54fa6e54f8ff96e",
+      "model": "claude-opus-5-5",
+      "state": "done",
+      "startedAt": 1794981525111,
+      "queuedAt": 1794981524840,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "/Users/admin/Documents/ZTronSearchEngine/Verification/cycle…",
+      "promptPreview": "You are the skeptic for one module in cycle 2 of an independent verification of the ZTronSearchEngine Swift package at /Users/admin/Documents/ZTronSearchEngine. An auditor read the test suites, fixtures and CI as evidence: do they prove what the README and the CI workflows claim (Tests/ZTronSearchEngineTests (PerformanceTests, RelevanceTests, GoldenGates, ConcurrencyTests, SignalTuningTests, Rando…",
+      "promptFramed": true,
+      "lastProgressAt": 1794982509392,
+      "tokens": 265082,
+      "toolCalls": 65,
+      "durationMs": 984279,
+      "resultPreview": "{\"checkpoint_file\":\"/Users/admin/Documents/ZTronSearchEngine/Verification/cycle-2/verify-m06-tests-gates.md\",\"verdicts\":[{\"id\":\"C2-m06-tests-gates-01\",\"verdict\":\"confirmed\",\"severity\":\"high\",\"reasoning\":\"check() calls XCTExpectFailure(knownGap) with no closure, and only when measured > allowed. Every later failure in the same test becomes an expected failure: :535 after :534, and :327 after :323-3…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "break:m05-adapters",
+      "phaseIndex": 1,
+      "phaseTitle": "Break",
+      "agentId": "acad4fd27cb3c8f24",
+      "model": "claude-opus-5-5",
+      "state": "done",
+      "startedAt": 1794981525111,
+      "queuedAt": 1794981524840,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "/Users/admin/Documents/ZTronSearchEngine/Verification/cycle…",
+      "promptPreview": "You are the skeptic for one module in cycle 2 of an independent verification of the ZTronSearchEngine Swift package at /Users/admin/Documents/ZTronSearchEngine. An auditor read the three adapter packages (Adapters/ZTronSearchEngineSQLite, Adapters/ZTronSearchEngineMLX and Adapters/ZTronSearchEngineAssetKit; the AssetKit adapter wraps the library at /Users/admin/Documents/ZTronAssetKit (read it, ne…",
+      "promptFramed": true,
+      "lastProgressAt": 1794982739942,
+      "tokens": 309823,
+      "toolCalls": 99,
+      "durationMs": 1212619,
+      "resultPreview": "{\"checkpoint_file\":\"/Users/admin/Documents/ZTronSearchEngine/Verification/cycle-2/verify-m05-adapters.md\",\"verdicts\":[{\"id\":\"C2-m05-adapters-01\",\"verdict\":\"partly\",\"severity\":\"low\",\"reasoning\":\"Kept from the first run. testSection159TargetsOverSQLite throws XCTSkip under #if DEBUG (DatabaseTargetsTests.swift:68-71) and adapter-tests.yml runs only debug `swift test` and `swift test --sanitize=threa…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "break:m03-semantic",
+      "phaseIndex": 1,
+      "phaseTitle": "Break",
+      "agentId": "a433dbf91eff5afda",
+      "model": "claude-opus-5-5",
+      "state": "done",
+      "startedAt": 1794981525111,
+      "queuedAt": 1794981524840,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "/Users/admin/Documents/ZTronSearchEngine/Verification/cycle…",
+      "promptPreview": "You are the skeptic for one module in cycle 2 of an independent verification of the ZTronSearchEngine Swift package at /Users/admin/Documents/ZTronSearchEngine. An auditor read the semantic product: INT8 vectors, HNSW, tokenizers, Core ML adapters and rerank calibration (Sources/ZTronSearchEngineSemantic (all of it) and Scripts/semantic/*.py) and reported findings, written in full in /Users/admin/…",
+      "promptFramed": true,
+      "lastProgressAt": 1794983109213,
+      "tokens": 302607,
+      "toolCalls": 93,
+      "durationMs": 1581887,
+      "resultPreview": "{\"checkpoint_file\":\"/Users/admin/Documents/ZTronSearchEngine/Verification/cycle-2/verify-m03-semantic.md\",\"verdicts\":[{\"id\":\"C2-m03-semantic-01\",\"verdict\":\"partly\",\"severity\":\"medium\",\"reasoning\":\"The code facts are confirmed. SemanticLimits budgets are 80/60 MiB and labelled 'On-disk budget ... (specification section 15.5)'. Both adapters compare footprintBlocking of the .mlmodelc with sizeBudget…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "break:m01-text-index",
+      "phaseIndex": 1,
+      "phaseTitle": "Break",
+      "agentId": "a57e128e2e4a49ae3",
+      "model": "claude-opus-5-5",
+      "state": "done",
+      "startedAt": 1794981525111,
+      "queuedAt": 1794981524841,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "/Users/admin/Documents/ZTronSearchEngine/Verification/cycle…",
+      "promptPreview": "You are the skeptic for one module in cycle 2 of an independent verification of the ZTronSearchEngine Swift package at /Users/admin/Documents/ZTronSearchEngine. An auditor read the core text pipeline, lexical index and scan strategy (Sources/ZTronSearchEngine/Text, Index, Scan and Support) and reported findings, written in full in /Users/admin/Documents/ZTronSearchEngine/Verification/cycle-2/find-…",
+      "promptFramed": true,
+      "lastProgressAt": 1794982634748,
+      "tokens": 269126,
+      "toolCalls": 88,
+      "durationMs": 1107419,
+      "resultPreview": "{\"checkpoint_file\":\"/Users/admin/Documents/ZTronSearchEngine/Verification/cycle-2/verify-m01-text-index.md\",\"verdicts\":[{\"id\":\"C2-m01-text-index-01\",\"verdict\":\"partly\",\"severity\":\"medium\",\"reasoning\":\"Mechanism confirmed. check() calls the closure-less XCTExpectFailure(knownGap) when a budget is over (PerformanceTests.swift:77-81), and that form absorbs every later failure in the method. Both mask…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "break:m02-query-service",
+      "phaseIndex": 1,
+      "phaseTitle": "Break",
+      "agentId": "a0fdd76b49e5eeac2",
+      "model": "claude-opus-5-5",
+      "state": "done",
+      "startedAt": 1794981525111,
+      "queuedAt": 1794981524841,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "/Users/admin/Documents/ZTronSearchEngine/Verification/cycle…",
+      "promptPreview": "You are the skeptic for one module in cycle 2 of an independent verification of the ZTronSearchEngine Swift package at /Users/admin/Documents/ZTronSearchEngine. An auditor read the core query layer, fusion and ranking, the service, search contexts, database sources and the chat service (Sources/ZTronSearchEngine/Query, Service, Projection, Database, Chat and Contracts) and reported findings, writt…",
+      "promptFramed": true,
+      "lastProgressAt": 1794983312804,
+      "tokens": 359226,
+      "toolCalls": 125,
+      "durationMs": 1785474,
+      "resultPreview": "{\"checkpoint_file\":\"/Users/admin/Documents/ZTronSearchEngine/Verification/cycle-2/verify-m02-query-service.md\",\"verdicts\":[{\"id\":\"C2-m02-query-service-01\",\"verdict\":\"partly\",\"severity\":\"high\",\"reasoning\":\"Every mechanic reproduces. adoptPersistedIndex builds its expectation with fingerprint \\\"\\\", so only versions, languages and the model are checked. When the adopted count exceeds the scan thresho…"
+    }
+  ],
+  "totalTokens": 1505864,
+  "totalToolCalls": 470
+}

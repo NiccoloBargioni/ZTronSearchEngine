@@ -1,0 +1,65 @@
+START 2026-11-17 17:45:07
+CMD: swift test -c release -Xswiftc -enable-testing --package-path Adapters/ZTronSearchEngineSQLite --filter DatabaseTargetsTests
+LOAD: 17:45  up 3 days,  7:25, 2 users, load averages: 10.06 34.03 79.55
+BOOTED SIMULATORS: 12
+Building for production...
+[Constructing description]
+[Planning deferred tasks]
+[41 / 76]
+[43 / 78] SQLite
+[54 / 127]
+[55 / 127]
+[62 / 127]
+[66 / 127]
+[68 / 127]
+[69 / 127]
+[72 / 127]
+[74 / 127]
+[76 / 127]
+[79 / 127]
+[82 / 127]
+[84 / 127]
+[85 / 127]
+[86 / 127]
+[91 / 127]
+[92 / 127]
+[93 / 127]
+[94 / 127] SQLite
+[100 / 127] ZTronSearchEngine
+[107 / 128] ZTronSearchEngineSQLite
+[109 / 129] ZTronSearchEngineSQLite
+[120 / 130] ZTronSearchEngineSQLiteTests-product
+[131 / 154]
+[135 / 154]
+[137 / 154]
+[139 / 154]
+[140 / 154]
+[143 / 154]
+[144 / 154]
+[145 / 154] ZTronSearchEngineSQLiteTests-product
+[150 / 154] ZTronSearchEngineSQLiteTests-product
+[152 / 154] ZTronSearchEngineSQLiteTests-product
+Build complete! (46,84 s)
+Test Suite 'Selected tests' started at 2026-11-17 17:45:57.342.
+Test Suite 'ZTronSearchEngineSQLiteTests.xctest' started at 2026-11-17 17:45:57.344.
+Test Suite 'DatabaseTargetsTests' started at 2026-11-17 17:45:57.344.
+Test Case '-[ZTronSearchEngineSQLiteTests.DatabaseTargetsTests testSection159TargetsOverSQLite]' started.
+/Users/admin/Documents/ZTronSearchEngine/Adapters/ZTronSearchEngineSQLite/Tests/ZTronSearchEngineSQLiteTests/DatabaseTargetsTests.swift:179: error: -[ZTronSearchEngineSQLiteTests.DatabaseTargetsTests testSection159TargetsOverSQLite] : XCTAssertLessThanOrEqual failed: ("0.010154") is greater than ("0.008333333333333333") - incremental upsert of 100 changed rows, after the commit (p95 of 40 commits)
+Test Case '-[ZTronSearchEngineSQLiteTests.DatabaseTargetsTests testSection159TargetsOverSQLite]' failed (1.030 seconds).
+Test Suite 'DatabaseTargetsTests' failed at 2026-11-17 17:45:58.374.
+	 Executed 1 test, with 1 failure (0 unexpected) in 1.030 (1.030) seconds
+Test Suite 'ZTronSearchEngineSQLiteTests.xctest' failed at 2026-11-17 17:45:58.374.
+	 Executed 1 test, with 1 failure (0 unexpected) in 1.030 (1.030) seconds
+Test Suite 'Selected tests' failed at 2026-11-17 17:45:58.374.
+	 Executed 1 test, with 1 failure (0 unexpected) in 1.030 (1.032) seconds
+PERF sqlite context creation from 10k rows, 3 string fields, 2 languages: 215.287 ms measured; budget 1500 ms on the reference device, 250.000 ms here (within)
+PERF sqlite one page: read, resolve and project 500 rows (p95): 5.169 ms measured; budget 40 ms on the reference device, 6.667 ms here (within)
+PERF sqlite 100 changed rows: p50 2.7 ms, worst 12.5 ms
+PERF sqlite incremental upsert of 100 changed rows, after the commit (p95 of 40 commits): 10.154 ms measured; budget 50 ms on the reference device, 8.333 ms here (OVER)
+PERF sqlite index round trip inside the host database, 10k documents: write: 8.714 ms measured; budget 400 ms on the reference device, 66.667 ms here (within)
+PERF sqlite index round trip inside the host database, 10k documents: load: 1.184 ms measured; budget 250 ms on the reference device, 41.667 ms here (within)
+Note: Some test targets reported failures:
+  - ZTronSearchEngineSQLiteTests (XCTest)
+EXIT: 1
+LOAD AFTER: 17:45  up 3 days,  7:26, 2 users, load averages: 12.81 31.00 75.82
+END 2026-11-17 17:45:58

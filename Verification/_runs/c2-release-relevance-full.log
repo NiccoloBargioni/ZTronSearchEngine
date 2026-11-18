@@ -1,0 +1,85 @@
+START 2026-11-17 17:29:50
+CMD: env ZTRON_FULL_CORPUS=1 swift test -c release -Xswiftc -enable-testing --scratch-path .build-release --filter RelevanceTests
+LOAD: 17:29  up 3 days,  7:10, 2 users, load averages: 307.23 296.04 159.69
+BOOTED SIMULATORS: 12
+Building for production...
+[Computing dependencies]
+[1 / 4]
+[2 / 8] ZTronSearchFixturesTests-product
+Build complete! (1,36 s)
+Test Suite 'Selected tests' started at 2026-11-17 17:29:55.660.
+Test Suite 'ZTronSearchFixturesTests.xctest' started at 2026-11-17 17:29:55.661.
+Test Suite 'ZTronSearchFixturesTests.xctest' passed at 2026-11-17 17:29:55.661.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-17 17:29:55.661.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'Selected tests' started at 2026-11-17 17:29:55.778.
+Test Suite 'ZTronSearchEngineUITests.xctest' started at 2026-11-17 17:29:55.779.
+Test Suite 'ZTronSearchEngineUITests.xctest' passed at 2026-11-17 17:29:55.779.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-17 17:29:55.779.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'Selected tests' started at 2026-11-17 17:29:55.866.
+Test Suite 'ZTronSearchEngineTests.xctest' started at 2026-11-17 17:29:55.867.
+Test Suite 'RelevanceTests' started at 2026-11-17 17:29:55.867.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testCrossLanguageRecall]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testCrossLanguageRecall]' passed (27.771 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testEveryStageReportsItsNumbers]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testEveryStageReportsItsNumbers]' passed (239.737 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testExactTitleIsRankOne]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testExactTitleIsRankOne]' passed (0.004 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testFilterAndKindPrecision]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testFilterAndKindPrecision]' passed (37.743 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testKeywordNDCG]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testKeywordNDCG]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testLexicalStageExactTitle]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testLexicalStageExactTitle]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testLexicalStageFiltersAndKinds]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testLexicalStageFiltersAndKinds]' passed (44.635 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testLexicalStageKeywords]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testLexicalStageKeywords]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testLexicalStageLocalizedTitle]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testLexicalStageLocalizedTitle]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testLexicalStageTitlePrefix]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testLexicalStageTitlePrefix]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testLexicalStageTypos]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testLexicalStageTypos]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testLocalizedTitleIsRankOne]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testLocalizedTitleIsRankOne]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testNoHitEverViolatesAHardConstraint]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testNoHitEverViolatesAHardConstraint]' passed (158.791 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testParaphraseRecall]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testParaphraseRecall]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testRerankedHeadNDCG]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testRerankedHeadNDCG]' passed (0.003 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testSignalsLeaveEveryGateStanding]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testSignalsLeaveEveryGateStanding]' passed (104.815 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testTheFinalSnapshotIsTheOneTheStageAsksFor]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testTheFinalSnapshotIsTheOneTheStageAsksFor]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testTheGoldenSetIsWhatSection15Asks]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testTheGoldenSetIsWhatSection15Asks]' passed (0.022 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testTheRerankedStageKeepsEveryGate]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testTheRerankedStageKeepsEveryGate]' passed (38.511 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testTitlePrefixMRR]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testTitlePrefixMRR]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testTypoRecall]' started.
+Test Case '-[ZTronSearchEngineTests.RelevanceTests testTypoRecall]' passed (0.000 seconds).
+Test Suite 'RelevanceTests' passed at 2026-11-17 17:40:47.910.
+	 Executed 21 tests, with 0 failures (0 unexpected) in 652.039 (652.043) seconds
+Test Suite 'ZTronSearchEngineTests.xctest' passed at 2026-11-17 17:40:47.910.
+	 Executed 21 tests, with 0 failures (0 unexpected) in 652.039 (652.044) seconds
+Test Suite 'Selected tests' passed at 2026-11-17 17:40:47.910.
+	 Executed 21 tests, with 0 failures (0 unexpected) in 652.039 (652.045) seconds
+RELEVANCE 483 golden queries among 100000 distractors
+RELEVANCE lexical: exactTitle 1.0000, titlePrefix 1.0000, typo 0.9855, keyword 1.0000, paraphrase 0.0000, crossLanguage 0.0000, localizedTitle 1.0000, filterAndKind 1.0000
+RELEVANCE semantic: exactTitle 1.0000, titlePrefix 0.9867, typo 0.9855, keyword 1.0000, paraphrase 0.9875, crossLanguage 1.0000, localizedTitle 1.0000, filterAndKind 1.0000
+RELEVANCE reranked: exactTitle 1.0000, titlePrefix 0.9867, typo 0.9855, keyword 1.0000, paraphrase 0.9875, crossLanguage 1.0000, localizedTitle 1.0000, filterAndKind 1.0000
+RELEVANCE signals: exactTitle 1.0000, titlePrefix 0.9867, typo 0.9855, keyword 1.0000, paraphrase 0.9875, crossLanguage 1.0000, localizedTitle 1.0000, filterAndKind 1.0000
+Test Suite 'Selected tests' started at 2026-11-17 17:40:48.031.
+Test Suite 'ZTronSearchEngineSemanticTests.xctest' started at 2026-11-17 17:40:48.032.
+Test Suite 'ZTronSearchEngineSemanticTests.xctest' passed at 2026-11-17 17:40:48.032.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-17 17:40:48.032.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+EXIT: 0
+END 2026-11-17 17:40:48

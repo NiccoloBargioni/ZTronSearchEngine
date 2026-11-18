@@ -1,0 +1,1599 @@
+{
+ "cycle": 2,
+ "modules": [
+  {
+   "module": "m01-text-index",
+   "files_read": 44,
+   "lines_read": 12000,
+   "skeptic_ran": false,
+   "findings": [
+    {
+     "id": "C2-m01-text-index-01",
+     "title": "Non-scoped XCTExpectFailure in PerformanceTests.check() silently excuses every later assertion of the test, masking the 15.8 scan-query gate and the 'query never waits for the rebuild' gate",
+     "category": "test-integrity",
+     "spec_ref": "15.8 (scan query 3 ms / 500 docs, memory 1 MB), 5 rule 7 and 11 (queries keep working during a rebuild), 15.2",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:70-87 (XCTExpectFailure(knownGap) at :80)",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:527-537 (query check :535 has no knownGap; memory only printed :536)",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:301-328 (liveness assert :327 after the knownGap check :323-326)",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:58-62 (whole class skipped in DEBUG)"
+     ],
+     "found_severity": "high",
+     "verdict": "unverified",
+     "severity": "high",
+     "summary": "When a known-gap budget is over, check() calls XCTExpectFailure(knownGap) without a closure. That form marks every failure for the rest of the test method as expected, not just the next assertion.\n- In testSmallContextsOfCatalogSizedDocuments, creation is over budget in both release runs. After that, the 15.8 scan-query check at :535, which has no known gap, can no longer fail.\n- In testFullLexicalRebuildOnLocaleChange, the rebuild is always over budget on this machine, so XCTAssertLessThan(worstQuery, 0.25, \"a query never waits for the rebuild\") at :327 can never fail.\n- The 15.8 memory budge…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m01-text-index-02",
+     "title": "Locale-rebuild (2 s/100k), incremental-upsert and catalog-sized scan-creation budgets are not met by the project's own scaled estimate; recorded as expected failures so the suite stays green",
+     "category": "performance",
+     "spec_ref": "5 rule 7 (Budget: 2 s for 100k items), 15.8 (context creation 50 ms for 500 documents), 15.x upsert budget (0.1 ms per document)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:323-326",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:396-397",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:534",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchFixtures/ReferenceDevice.swift:17-25,72,74"
+     ],
+     "found_severity": "high",
+     "verdict": "unverified",
+     "severity": "high",
+     "summary": "The package's own reference-device factor is 6 on Apple-silicon Macs. With it, the measured times exceed the allowed times:\n- Locale rebuild of 100k items: 1134.2 ms in the rerun and 2567.5 ms in the first run, against 333.3 ms allowed. That is about 3.4x to 7.7x over the 2 s spec budget.\n- Upsert per document: 0.053 and 0.083 ms in the rerun, 0.066 and 0.146 ms in the first run, against 0.017 ms allowed.\n- Scan context creation for 500 catalog-sized documents: 9.543 ms in the rerun and 46.582 ms in the first run, against 8.333 ms allowed.\nEach of these checks carries a knownGap, so every test…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m01-text-index-03",
+     "title": "Segments are validated only at the outer layer; corrupt cached files that pass crash, hang or return wrong results at every launch, and the header check itself can trap before the file is discarded",
+     "category": "bug",
+     "spec_ref": "6 (persisted index files are versioned; mismatch discards the file), 9.1 rule 6, 10 (memory-mapped index files)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Index/IndexSegment.swift:107-196 (init), :137-139 (Int(UInt64) and offset+length unchecked)",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Index/IndexSegment.swift:299-302, :393-396, :402-404, :410-412, :419-422, :428-445 (unchecked accessors; ordinal(ofID:) while true)",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Index/ByteCoding.swift:113-114, :124 (false comment 'The segment was validated when it was opened.')",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Index/IndexSearcher.swift:966, :1000, :1006"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "IndexSegment.init checks only:\n- the magic, format version and section bounds;\n- the fixed section sizes and a power-of-two id table;\n- the kind, filter and metadata tables.\nIt never checks the values inside the term, id, store, filter and forward offset tables, the posting payloads, the kind and filter ordinals, or the id-hash entries. The readers then use all of these unchecked, through raw pointers and array subscripts.\n\nThe header check can itself trap: Int(UInt64) traps for values of 2^63 or more, and offset+length can overflow. Both happen inside init, before LexicalIndex.load's catch ca…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m01-text-index-04",
+     "title": "Persisted-index reuse fingerprints only id, kind, text/title byte length and updatedAt; changed filters, keywords, captions, OCR text or localizations keep a stale index (Service code, outside module files)",
+     "category": "bug",
+     "spec_ref": "9.1 rule 6 (indexed context persists under its own file), 6 (persisted files), 9.1 rule 5 / 4.1 (filters are hard constraints)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Service/SearchService+Context.swift:123-140 (reuse branch skips projection)",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Service/SearchService+Context.swift:176-199 (fingerprint)",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Service/SearchService+Context.swift:673-703 (adoptPersistedIndex, fingerprint \"\")",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Index/LexicalIndex.swift:187-207 (content check skipped when expected fingerprint is empty)"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "fingerprint(of:) mixes in only the id, the kind, the UTF-8 length of the text and title, and updatedAt. It leaves out keywords, caption, OCR text, localized strings, filters and embeddings, and it misses text edits that keep the byte length.\n\nWhen the fingerprint matches, the file is memory-mapped and projection is skipped entirely. The only place this limitation is stated is the doc comment of the internal function ('Edits that keep all of them need an explicit refresh()'). The public .files documentation does not mention it.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m01-text-index-05",
+     "title": "SearchLimits clamps are bypassed by its public properties: prefixExpansions = 0 or lexicalCandidates <= 0 crash the indexed strategy, while the scan strategy keeps working",
+     "category": "bug",
+     "spec_ref": "10 (bounded work limits), 9.1 rule 3 (both strategies behave identically)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Contracts/SearchEngineConfiguration.swift:26-56",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Query/QueryPlanner.swift:198-200 (TopSelector.accepts reads elements[count-1] when limit <= 0)",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Index/IndexSearcher.swift:127, :154",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Index/IndexSearcher.swift:697-698, :737-739, :796-799 (slots[slotCount] written before the limit check)"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "SearchLimits.init clamps its values with max(1, ...), but the properties are public vars, so assigning to them afterwards skips the clamp.\n- With limits.prefixExpansions = 0, which is a natural way to switch prefix matching off, IndexTermSource.prefixExpansions calls selector.accepts on an empty TopSelector, and accepts reads elements[-1].\n- With limits.lexicalCandidates = 0 or a negative value, prepareScratch leaves the slot array empty, and admitCandidates writes slots[0] before checking the limit.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m01-text-index-06",
+     "title": "SearchableID == is Unicode canonical equivalence but the index identifies documents by UTF-8 bytes: remove/contains miss, 'equal' duplicates appear, scan and indexed strategies diverge, and < is inconsistent with ==",
+     "category": "bug",
+     "spec_ref": "4 and 9.1 rule 1 (ids unique inside a context), 9.1 rule 3 (identical ranking across strategies)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Contracts/Searchable.swift:9-38",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Index/LexicalIndex.swift:373-400 (dedup by ==), :449-458, :571-578 (locate by bytes)",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Index/IndexSegment.swift:428-445",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Scan/ScanEngine.swift:32-45"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "SearchableID's synthesized Hashable uses String equality, which treats canonically equivalent strings as equal. So the NFC and NFD spellings of 'café' are == and hash equally. Batch dedup and the scan engine therefore merge them into one id.\n\nThe index, however, hashes and compares raw UTF-8 bytes in ordinal(ofID:). Separately, < compares bytes, so for two == ids one of them is also < the other, which breaks Comparable's rules.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m01-text-index-07",
+     "title": "Paging arithmetic overflows: SearchQuery.limit = Int.max with a cursor offset > 0 traps (ScanIndex, and the same pattern in SearchService paging and suggestions)",
+     "category": "bug",
+     "spec_ref": "9 / 9.1 (paging, ScanIndex.hits)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Scan/ScanIndex.swift:76-77",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Service/SearchService.swift:465-466",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Service/SearchService.swift:837, :858-859"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "`start + max(0, query.limit)` uses trapping arithmetic, and SearchQuery.limit is a public Int with no clamp. Int.max is the usual way to ask for 'no limit'. The suggestions code has the same problem with `limit * 4` and `limit + 1`.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m01-text-index-08",
+     "title": "Filter-only queries on the indexed strategy keep the first 2,000 live documents in segment order, so the hits depend on upsert/merge history",
+     "category": "bug",
+     "spec_ref": "10 (at most 2,000 candidates), 9.1 rule 3",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Index/IndexSearcher.swift:680-692",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Index/IndexSearcher.swift:916-944",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Index/LexicalIndex.swift:661-672"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "A query with only filters or kinds gives every admitted document the same score of 1, so the result list is sorted by id. But it is sorted only over whichever 2,000 documents came first in segment and ordinal order. install reorders segments by live count, and merges and saves change that order.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m01-text-index-09",
+     "title": "Plans with more than 64 clauses (bigram fallback) give later clauses match bit 0, so documents matching only those clauses are dropped",
+     "category": "bug",
+     "spec_ref": "7.1",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Query/QueryPlanner.swift:122, :150-157",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Index/IndexSearcher.swift:899, :929",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Scan/ScanEngine.swift:189"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "The parser caps clauses at 64. The planner's bigram fallback, however, adds one plan clause for every matched bigram, so a long CJK or Thai query can push the plan past 64 clauses. Clauses from index 64 onward still add to the score but contribute match bit 0, and a document whose match mask is 0 is dropped from the list. Both strategies share this code, so parity is not broken.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m01-text-index-10",
+     "title": "Normalization adds a dotless-i to i step beyond the spec recipe",
+     "category": "spec-deviation",
+     "spec_ref": "5 rule 4 (NFKC, then folding(.caseInsensitive, .diacriticInsensitive, .widthInsensitive, locale))",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Text/SearchNormalizer.swift (normalize: documented ı -> i step after folding)"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "The extra step is deliberate and commented. It merges the distinct Turkish letters ı and i in every locale, which the spec's recipe does not do: folding on its own leaves ı unchanged.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m01-text-index-11",
+     "title": "Weak or nondeterministic tests: unseeded trigram property test, locale-change test that does not prove overlap with the rebuild, corrupt-file test that only fails the magic check",
+     "category": "test-integrity",
+     "spec_ref": "7.2, 5 rule 7, 6",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/TextPipelineTests.swift:160-163",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/InternationalizationTests.swift:233-283",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/StrategyParityTests.swift (testCorruptFileIsRejected)"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "- testTrigramFilterIsLossless uses SystemRandomNumberGenerator and does not print a seed, so a failure cannot be replayed.\n- The locale-change test's probe item reads the same in every locale, and nothing records whether any of the 20 queries actually ran while the rebuild was in progress.\n- testCorruptFileIsRejected only feeds bytes that fail the magic check, so it never exercises a file that passes the outer checks (see -03).",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m01-text-index-12",
+     "title": "admitCandidates comment claims 'heaviest field first', but fields are visited in fixed ordinal order regardless of the profile's field weights",
+     "category": "false-claim",
+     "spec_ref": "7.1 (field weights per RankingProfile)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Index/IndexSearcher.swift:694-695",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Index/IndexSearcher.swift:773"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "Fields are visited in the fixed order title, keywords, caption, text, localizedAlt, ocrText. That matches the default weights only. With a custom RankingProfile.fieldWeights, the admission order ignores the weights, so the comment is true only for the default profile.",
+     "skeptic": "",
+     "repro": ""
+    }
+   ],
+   "not_checked": "No device-only budgets: there is no device. Not read: the rest of the Service, Database, Chat and Semantic code; most test bodies in CoreCorrectnessTests and IndexMaintenanceTests (names and some parts were read); HighlighterTests beyond the fast path. Findings -08 and -09 come from code reading only and were not executed. Two issues were noted but not reported because they seem unreachable in practice: a DocumentCodec language-count mismatch on hand-written JSON, and TokenSpan.piece being a UIn…"
+  },
+  {
+   "module": "m02-query-service",
+   "files_read": 48,
+   "lines_read": 12300,
+   "skeptic_ran": false,
+   "findings": [
+    {
+     "id": "C2-m02-query-service-01",
+     "title": "Database-backed contexts adopt a persisted index without reading their rows, so writes made while no context is subscribed are never indexed",
+     "category": "bug",
+     "spec_ref": "9.2 rules 4-6 (one document set from the sources; change stream; refresh; index persistence), 9.1 rule 6, section 6 persisted-index rule, 16 Index-in-database persistence",
+     "locations": [
+      "Sources/ZTronSearchEngine/Service/SearchService+Context.swift:156-166",
+      "Sources/ZTronSearchEngine/Service/SearchService+Context.swift:351-353",
+      "Sources/ZTronSearchEngine/Service/SearchService+Context.swift:671-703",
+      "Sources/ZTronSearchEngine/Service/SearchService+Context.swift:123-125"
+     ],
+     "found_severity": "critical",
+     "verdict": "unverified",
+     "severity": "critical",
+     "summary": "For a context with database sources, finishSetup subscribes to the change stream and then calls rebuild(adoptingPersistedIndex: true). adoptPersistedIndex loads either the index file (the default storage is .files in Caches) or the <prefix>_* tables. It checks only the projection and normalizer versions, the languages and the embedding model id. The expected content fingerprint is \"\", and LexicalIndex.validate skips the comparison when the expected fingerprint is empty. If the adopted index holds more than scanThreshold documents, or the strategy is .indexed, it becomes the storage and the hos…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-02",
+     "title": "Memory-context index files are reused after content edits: the fingerprint ignores keywords, filters, captions, OCR text, localizations and any edit that keeps text and title lengths",
+     "category": "bug",
+     "spec_ref": "9.1 rule 6 (an indexed context persists under its own file), section 6 persisted-index rule, section 5 localizations",
+     "locations": [
+      "Sources/ZTronSearchEngine/Service/SearchService+Context.swift:176-199",
+      "Sources/ZTronSearchEngine/Service/SearchService+Context.swift:123-141",
+      "Sources/ZTronSearchEngine/Index/LexicalIndex.swift:204-206",
+      "Tests/ZTronSearchEngineTests/SearchContextTests.swift:311-340"
+     ],
+     "found_severity": "high",
+     "verdict": "unverified",
+     "severity": "high",
+     "summary": "This affects an indexed memory context (more than 500 items, or .indexed) with .files storage (the default) and a non-default id. Such a context persists its index, and at the next init it memory-maps that file when the content fingerprint matches. The fingerprint mixes in only the id, the kind raw value, the UTF-8 lengths of searchText and searchTitle, and updatedAt. The fingerprint does not change for any of these edits: keywords, filters, caption, OCR text, searchLanguage, or searchLocalizations (for example, an app update that ships translations). The same holds for text or title edits tha…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-03",
+     "title": "The randomized no-stale-snapshots test cannot detect a stale snapshot",
+     "category": "test-integrity",
+     "spec_ref": "15.4 'Zero stale snapshots published over a randomized sequence of 10,000 query changes'; 11 No stale results; 16 Stale-result suppression with randomized query sequences",
+     "locations": [
+      "Tests/ZTronSearchEngineTests/ConcurrencyTests.swift:157-219",
+      "Tests/ZTronSearchEngineTests/ConcurrencyTests.swift:175-176",
+      "Tests/ZTronSearchEngineTests/ConcurrencyTests.swift:191",
+      "Tests/ZTronSearchEngineTests/ConcurrencyTests.swift:223-243"
+     ],
+     "found_severity": "high",
+     "verdict": "unverified",
+     "severity": "high",
+     "summary": "The doc comment claims that once a newer query has been issued, an older stream never yields again. The ledger counts only two things: a snapshot whose query differs from its own stream's query, and a snapshot whose generation differs from the first generation seen on the same stream. An obsolete producer that yields its own query's snapshot after a newer results(for:) call passes both checks, so staleness increments nothing. The other assertions cannot fail on staleness either: published > 0, finals <= changes + 20, generations growing at the probes, and the last query completing. The only de…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-04",
+     "title": "A row with a literal and a localized key in the same role loses the literal from its field: it is moved to localizedAlt, even under the base language",
+     "category": "spec-deviation",
+     "spec_ref": "9.2 rule 3 (literals keep their declared language; only other preferred languages feed localizedAlt), 9.2 rule 4 / 15.9 (row ranks like the same memory item), section 5",
+     "locations": [
+      "Sources/ZTronSearchEngine/Database/SearchRowProjector.swift:132-147",
+      "Sources/ZTronSearchEngine/Database/SearchRowProjector.swift:153-156",
+      "Sources/ZTronSearchEngine/Projection/SearchProjector.swift:109"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "For a keyed field, the row projector writes the resolved string for every catalog language, base language included, into searchLocalizations[tag] (for .text, into localizedTexts[tag]). Literal fields of the same role go only to the base surface. So for the active language, the localization holds only the key's string. SearchProjector then treats the base surface (literal plus key string) as shadowed and demotes it to localizedAlt. That field has a BM25F weight of 0.5, against 1.0 for text and 4.0 for keywords. With the base locale and no secondary languages, localizedAlt should be empty.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-05",
+     "title": "The chat idle-unload timer can fire while a new turn is retrieving or assembling its prompt, and cancels that turn",
+     "category": "concurrency",
+     "spec_ref": "14.3 rules 4-5 (unload after 120 s idle), 14.4 lifecycle",
+     "locations": [
+      "Sources/ZTronSearchEngine/Chat/ChatService.swift:377-400",
+      "Sources/ZTronSearchEngine/Chat/ChatService.swift:440-477",
+      "Sources/ZTronSearchEngine/Chat/ChatService.swift:583-602",
+      "Sources/ZTronSearchEngine/Chat/ChatService.swift:409-420"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "send() neither bumps `use` nor cancels idleTask. runTurn sets the lifecycle to .generating only after three steps: retrieval (semantic and rerank phases, up to the 300 + 400 ms caps), source rendering (several countTokens calls per source) and prompt assembly. If the idle timer set by the previous turn (or by the load) expires in that window, unloadIfIdle sees an unchanged `use` and the .ready lifecycle and calls unload(). That unloads the model and cancels every session's task, including the turn that just started.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-06",
+     "title": "ChatService.load is not reentrancy-safe: unload() or a memory warning during a load is undone, and prepare() during a send-triggered load loads the weights twice",
+     "category": "concurrency",
+     "spec_ref": "14.3 rule 5, 14.4 (unload on memory warning; LLM unloads before the embedding model; 1.8 GB resident)",
+     "locations": [
+      "Sources/ZTronSearchEngine/Chat/ChatService.swift:282-298",
+      "Sources/ZTronSearchEngine/Chat/ChatService.swift:409-420",
+      "Sources/ZTronSearchEngine/Chat/ChatService.swift:129-155",
+      "Sources/ZTronSearchEngine/Chat/ChatService.swift:243-248"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "There are two races. (a) unload() during .loading unloads the runtime and sets .onDisk. The suspended load(from:) then resumes and settles .ready with the runtime loaded, so a memory warning that arrives during the load is lost. (b) A send that finds the lifecycle .onDisk loads the weights in ensureLoaded without setting `preparation`. A prepare() that arrives meanwhile sees preparation == nil and starts runPreparation. That overwrites the lifecycle with .onDisk and calls model.load a second time, concurrently.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-07",
+     "title": "Source truncation splits on whitespace only, so unspaced scripts (Japanese, Chinese, Thai) lose the whole caption or text of a source",
+     "category": "bug",
+     "spec_ref": "14.3 rule 1 ('[kind:id] title, caption from its localized surface, at most 80 tokens per source'); multilingual and CJK requirements (sections 2, 5)",
+     "locations": [
+      "Sources/ZTronSearchEngine/Chat/CitationParser.swift:164-180",
+      "Sources/ZTronSearchEngine/Chat/ChatService.swift:564-579"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "PromptAssembler.truncate keeps the longest prefix of whitespace-separated words that fits the limit. A Japanese caption or text counts as a single word. So a rendered source over 80 tokens is cut to '[kind:id] <title>,' and the caption or text disappears, even though about 60 tokens of budget remain. With a long unspaced title, only the marker remains. ChatTests exercise English only.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-08",
+     "title": "Citations of ids that contain ':' are never recognised and the raw marker leaks into the transcript",
+     "category": "bug",
+     "spec_ref": "14.3 rule 3 (markers parsed incrementally, emitted as .citation when the id is in the sources; markers never reach the text)",
+     "locations": [
+      "Sources/ZTronSearchEngine/Chat/CitationParser.swift:76-81"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "After each ':' inside a pending marker, consume() checks that everything before it is a kind: isKind(String(pending.dropFirst().dropLast())...). For '[map:m:harbor]' the second colon tests 'map:m', which is not a kind, so the bracket is released as ordinary text. marker(in:), which splits on the first colon and would accept the marker, is never reached. Such ids are legal. The engine's own SearchRowIdentity.prefixed produces them (DatabaseSourceTests uses .prefixed(\"m:\")), and the prompt tells the model to cite ids verbatim.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-09",
+     "title": "Text date columns cost up to two ISO8601DateFormatter constructions per row",
+     "category": "performance",
+     "spec_ref": "15.9 (one page of 500 rows read, resolved and projected in 40 ms; 10k-row context in 1.5 s on the reference device)",
+     "locations": [
+      "Sources/ZTronSearchEngine/Database/SearchSQLComposer.swift:190-209",
+      "Sources/ZTronSearchEngine/Database/SearchRowProjector.swift:175"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "SearchDateParser creates a new ISO8601DateFormatter for each option set it tries, for every value. SQLite.swift stores Date as TEXT ('yyyy-MM-dd'T'HH:mm:ss.SSS'). SQLite's CURRENT_TIMESTAMP produces 'YYYY-MM-DD HH:MM:SS', which costs two constructions because the fractional-seconds attempt fails first. The adapter's database target tests use REAL dates, so this path is never measured against the budget.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-10",
+     "title": "The cancellation-latency test allows 10 ms plus a quarter of the whole search, instead of 10 ms after the next checkpoint",
+     "category": "test-integrity",
+     "spec_ref": "15.4 'Cancellation honoured within 10 ms of the next checkpoint'; 11 (checkpoint every 1,000 postings)",
+     "locations": [
+      "Tests/ZTronSearchEngineTests/ConcurrencyTests.swift:49-79",
+      "Tests/ZTronSearchEngineTests/ConcurrencyTests.swift:75",
+      "Tests/ZTronSearchEngineTests/ConcurrencyTests.swift:82-107"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "The test asserts worst < 0.010 + full / 4, where `full` is the duration of an uncancelled run. The bound therefore grows with the search: a 400 ms debug or TSan search allows 110 ms. The test would pass with about four checkpoints per search. testTheScoringLoopChecksCancellation only shows that an already-cancelled task throws, meaning one checkpoint exists; it does not check the 1,000-unit spacing. The assertion message still claims the 10 ms gate.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-11",
+     "title": "Every keyed field resolves the key in every catalog language, though only the active, fallback and secondary languages are used",
+     "category": "performance",
+     "spec_ref": "15.9 (page and context-creation budgets)",
+     "locations": [
+      "Sources/ZTronSearchEngine/Database/SearchRowProjector.swift:116-147"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "For each keyed field of each row, the projector calls resolver.string(forKey:...) for every language the catalog lists and stores all the results in searchLocalizations. SearchProjector then keeps only the active language, its fallback chain and the configured secondary languages. The cost grows linearly with the number of catalog languages. Section 15.9 is specified, and tested, with only 2.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-12",
+     "title": "A row's literal fields lose their declared language unless every field of the row agrees on one language",
+     "category": "spec-deviation",
+     "spec_ref": "9.2 rule 3 ('Literal fields keep their declared language tag')",
+     "locations": [
+      "Sources/ZTronSearchEngine/Database/SearchRowProjector.swift:157-161"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "The row item has a single searchLanguage for its base surface. It is set only when no literal is untagged and the union of literal tags and the keys' first-resolved languages has exactly one element. Two cases get nil: a literal tagged 'fr' next to a key whose catalog base is 'en', and two literals with different tags. The literal is then tokenized and normalized without its language (DocumentAnalysis passes languages.<field> to the tokenizer), and matchedLanguage is unknown.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-13",
+     "title": "Public setters bypass the clamps of RerankSpec, EditorialPolicy and SearchLimits; out-of-range values exceed the spec ceilings or trap",
+     "category": "api",
+     "spec_ref": "7.4 / 8 (rerank top 16, at most 32; at most 3 pins)",
+     "locations": [
+      "Sources/ZTronSearchEngine/Contracts/RankingProfile.swift:73-85",
+      "Sources/ZTronSearchEngine/Contracts/RankingProfile.swift:88-101",
+      "Sources/ZTronSearchEngine/Contracts/SearchEngineConfiguration.swift:40",
+      "Sources/ZTronSearchEngine/Contracts/SearchEngineConfiguration.swift:54-55"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "The clamps (topN 1...32, blend 0...1, maximumPins 0...3, retainedHits >= 1) run only in the initializers. The properties themselves are public vars, and the README configures profiles by mutating them. Setting topN = 64 sends 64 passages to the cross-encoder. Setting maximumPins = 10 pins ten results. A negative topN or retainedHits traps in prefix(_:).",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-14",
+     "title": "A non-finite cross-encoder score puts NaN into the published hits and silently disables the rerank for the head",
+     "category": "bug",
+     "spec_ref": "7.4 (blend formula), 6 (snapshot semantics)",
+     "locations": [
+      "Sources/ZTronSearchEngine/Service/SearchService.swift:716-719",
+      "Sources/ZTronSearchEngine/Service/SearchPipeline.swift:155-192"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "rerankPhase accepts any score array of the right length, and reranked() min-max normalizes it. An +inf score becomes NaN for that document and 0 for all the others. A NaN score breaks the sort comparator and the score mapping. The snapshot then carries NaN scores and scores above the head's top score, the cross-encoder order is lost, and no degraded flag is set.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-15",
+     "title": "Wiring chat through ZTronSearch creates a retain cycle; neither the search service nor the chat service is ever freed",
+     "category": "bug",
+     "spec_ref": "9.1 rule 6 ('releasing the service frees everything'); 11 predictable cleanup / leak tests",
+     "locations": [
+      "Sources/ZTronSearchEngine/Chat/ChatService.swift:679-684"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "The facade installs `{ await service.unload() }` as the search service's memoryWarningPredecessor, and that closure captures the ChatService strongly. ChatService in turn holds the SearchService strongly. Releasing the facade therefore leaves both services alive, along with their index, observers and change-stream subscriptions.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-16",
+     "title": "A send that arrives during a model fetch waits, uncancellably, for the whole download while holding the generation lock",
+     "category": "concurrency",
+     "spec_ref": "14.3 rule 4 (a new send in the same session cancels the one in flight; other sessions queue), 14.4 cancellation target",
+     "locations": [
+      "Sources/ZTronSearchEngine/Chat/ChatService.swift:435-440",
+      "Sources/ZTronSearchEngine/Chat/ChatService.swift:532-539",
+      "Sources/ZTronSearchEngine/Chat/ChatService.swift:181-187"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "runTurn takes the generation lock, then ensureLoaded parks on a CheckedContinuation until the running preparation ends. Cancelling the turn (with stop, or with a new send in the same session) does not resume it. The cancelled turn holds the lock until the download finishes or is cancelled, and every other session queues behind it.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-17",
+     "title": "query.limit = 0 yields a cursor that never advances",
+     "category": "bug",
+     "spec_ref": "6 rule 8 (paging continues the final snapshot's list)",
+     "locations": [
+      "Sources/ZTronSearchEngine/Service/SearchService.swift:464-479",
+      "Sources/ZTronSearchEngine/Contracts/SearchQuery.swift:34"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "The page end is computed as start + max(0, limit). With limit 0, every snapshot and page is empty, but nextCursor is SearchCursor(offset: start) while documents remain. page(after:) therefore returns the same cursor forever.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-18",
+     "title": "The prompt budget counts message contents only, not the chat template's per-message tokens, and the test measures the same quantity",
+     "category": "spec-deviation",
+     "spec_ref": "14.3 rule 2 (prompt inside contextWindow - maxNewTokens - 64)",
+     "locations": [
+      "Sources/ZTronSearchEngine/Chat/CitationParser.swift:144-161",
+      "Tests/ZTronSearchEngineTests/ChatTests.swift:463-494"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "PromptAssembler sums countTokens(content) per message. The role headers and separators that the runtime's chat template adds are not counted; ChatML-style templates use about 4-6 tokens per message. Those tokens have to fit in the fixed 64-token margin. With a long kept history the overhead grows with the message count (about 150 tokens for 30 messages), so prompt + maxNewTokens can exceed the window. The test sums the same content-only counts.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m02-query-service-19",
+     "title": "SearchError.missingLocalizedStringResolver is declared but never thrown; keyed fields are silently dropped when no resolver is set",
+     "category": "api",
+     "spec_ref": "9.2 (localizedStrings 'required when any field is a localized key')",
+     "locations": [
+      "Sources/ZTronSearchEngine/Contracts/SearchHit.swift:134-135",
+      "Sources/ZTronSearchEngine/Database/SearchRowProjector.swift:111-114"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "The public error case documents 'A field is declared as a localization key but the context has no resolver', but nothing produces it. Instead, the projector emits a debug-only unresolvedLocalizationKey per field per row and indexes nothing for that field. A misconfigured context loads successfully with empty titles. testAContextWithoutAResolverIndexesNothingForKeyedFields enshrines the silent behaviour.",
+     "skeptic": "",
+     "repro": ""
+    }
+   ],
+   "not_checked": "I did not run the package's own test targets, because that is forbidden. I also made no device, simulator or release-build measurement of the section 15 budgets. The performance numbers come from two sources: a debug-build copy of the library (finding 11), and an optimized standalone copy of SearchDateParser (finding 09). Both ran on a Mac that other jobs may have been using at the same time. For confirmations, I copied the engine and fixture sources into the scratchpad and compiled them there w…"
+  },
+  {
+   "module": "m03-semantic",
+   "files_read": 61,
+   "lines_read": 14300,
+   "skeptic_ran": false,
+   "findings": [
+    {
+     "id": "C2-m03-semantic-01",
+     "title": "Model budgets are enforced as on-disk size in MiB, not the resident memory budgeted by section 15.2",
+     "category": "spec-deviation",
+     "spec_ref": "15.2 (Memory, resident: embedding model loaded 80 MB, reranker loaded 60 MB, semantic-query peak 200 MB), 15.5, 7.3, 7.4",
+     "locations": [
+      "Sources/ZTronSearchEngineSemantic/SemanticError.swift:79-82",
+      "Sources/ZTronSearchEngineSemantic/CoreML/CoreMLEmbeddingProvider.swift:150-152",
+      "Sources/ZTronSearchEngineSemantic/CoreML/CoreMLCrossEncoder.swift:137-138",
+      "Scripts/semantic/ztron_conversion.py:32-33"
+     ],
+     "found_severity": "high",
+     "verdict": "unverified",
+     "severity": "high",
+     "summary": "SemanticLimits.embeddingModelBudget and rerankerModelBudget are documented as 'On-disk budget (specification section 15.5)' and compared with the byte footprint of the .mlmodelc directory before load. Section 15.2 lists 80 MB / 60 MB under 'Memory (resident)' as 'model, loaded'. The default conversion route (--format neuralnetwork, the only one allowed for the iOS 15 floor) stores 8-bit linear weights that, by the script's own docstring, 'are expanded when the model loads'. So the checked quantity (INT8 bytes on disk) understates the budgeted quantity (resident bytes of the loaded model) by th…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m03-semantic-02",
+     "title": "QuantizedVectorStore.build writes out of bounds when the quantization has more dimensions than the space",
+     "category": "bug",
+     "spec_ref": "7.3 (INT8 vector store); build() API contract (throws dimensionMismatch)",
+     "locations": [
+      "Sources/ZTronSearchEngineSemantic/Vector/QuantizedVectorStore.swift:172",
+      "Sources/ZTronSearchEngineSemantic/Vector/QuantizedVectorStore.swift:187",
+      "Sources/ZTronSearchEngineSemantic/Vector/QuantizedVectorStore.swift:194",
+      "Sources/ZTronSearchEngineSemantic/Vector/VectorQuantization.swift:182-195"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "build(from:modelID:dimensions:quantization:) checks every vector against `dimensions` but uses the caller's quantization without checking quantization.dimensions == dimensions. It then calls parameters.encode(valueBase, into: target, scratch: workBase) (line 187), which runs vDSP over parameters.dimensions elements. That reads past the vector, and writes parameters.dimensions floats into the dimensions-sized scratch array and parameters.dimensions codes into the ids.count*dimensions code array. The check that would throw dimensionMismatch comes later, in the staging initializer (line 194). The…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m03-semantic-03",
+     "title": "A large `limit` crashes the HNSW search (Int.max) or pins scratch memory proportional to the limit",
+     "category": "bug",
+     "spec_ref": "10 (bounded work), 15.2 (memory)",
+     "locations": [
+      "Sources/ZTronSearchEngineSemantic/HNSW/HNSWGraph.swift:192-194",
+      "Sources/ZTronSearchEngineSemantic/HNSW/HNSWWorkspace.swift:206-218",
+      "Sources/ZTronSearchEngineSemantic/HNSW/HNSWIndex.swift:227-246",
+      "Sources/ZTronSearchEngineSemantic/SemanticIndex.swift:152-161"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "HNSWGraph.search sets breadth = max(ef, limit) and sizes the workspace with ef: max(breadth, efEntry). HNSWWorkspace.reserve computes `ef + 2` and allocates 2*listCapacity + ... entries plus listCapacity node slots. The size is never capped by the node count and never shrinks. Neither SemanticIndex.nearest(to:limit:) nor HNSWIndex.search bounds `limit`, while the exhaustive path does (TopMatches(limit: min(limit, liveCount))).",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m03-semantic-04",
+     "title": "WordPiece misfiles '##' continuation pieces that start with a combining mark, so words that need them become [UNK]",
+     "category": "bug",
+     "spec_ref": "7.3 / 7.4 (multilingual embedding and cross-encoder models), 15.3 (non-Latin language in the golden set)",
+     "locations": [
+      "Sources/ZTronSearchEngineSemantic/Tokenization/WordPieceTokenizer.swift:121-122",
+      "Tests/ZTronSearchEngineSemanticTests/WordPieceTokenizerTests.swift:6-15"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "The initializer splits the vocabulary with entry.piece.hasPrefix(prefix) and dropFirst(prefix.count). Both compare Swift Characters (grapheme clusters). In a piece such as \"##\" + U+0902 (Devanagari anusvara) or \"##\" + U+093F (vowel sign i), the second '#' and the mark form one grapheme, so hasPrefix(\"##\") is false. The piece goes into the word-initial table, where no word can reach it because BERT pre-tokenization splits '#'. Every word whose segmentation needs such a continuation becomes a single [UNK]. Multilingual WordPiece vocabularies (mBERT, DistilmBERT, LaBSE) contain many such pieces f…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m03-semantic-05",
+     "title": "A cancelled upsert leaves untracked vectors in the index, which are silently dropped at the quantization refit or not carried at a locale switch",
+     "category": "concurrency",
+     "spec_ref": "7.3 (runtime upserts), 5 rule 8 / 17 (per-locale vector sets), 11 (cancellation)",
+     "locations": [
+      "Sources/ZTronSearchEngineSemantic/SemanticIndex.swift:413-439",
+      "Sources/ZTronSearchEngineSemantic/SemanticIndex.swift:425-426",
+      "Sources/ZTronSearchEngineSemantic/SemanticIndex.swift:433-436",
+      "Sources/ZTronSearchEngineSemantic/HNSW/HNSWIndex.swift:178-193"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "store(_:) calls index.insert(contentsOf: entries). That checks cancellation every 128 insertions and keeps what it already inserted. When it throws, store skips `provisionalVectors = all` (provisional path) and the upsertedAtRuntime/removedAtRuntime updates (catalog path). The provisional refit, create(from: all...), rebuilds the set only from provisionalVectors plus the new entries, so the partially inserted vectors vanish. With per-locale sets, setLocale carries only upsertedAtRuntime, so they are left behind. Core's upsertVectors reports the CancellationError as 'item vectors were refused',…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m03-semantic-06",
+     "title": "The 'Not a gate' isotropic HNSW test enforces the latency gate and fails the CI quality-targets step",
+     "category": "test-integrity",
+     "spec_ref": "15.1 (HNSW ANN top 50: 5 ms p95, recall@10 >= 0.95), 16",
+     "locations": [
+      "Tests/ZTronSearchEngineSemanticTests/HNSWRecallTests.swift:117-127",
+      "Tests/ZTronSearchEngineSemanticTests/HNSWRecallTests.swift:218-226",
+      ".github/workflows/ci.yml:53-56"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "testRecallOnIsotropicTopicsIsReportedAndRecoversWithBreadth is documented as 'Not a gate' and runs measure(..., efSearch: 256), four times the specification's breadth. measure() asserts the scaled 5 ms budget (XCTAssertLessThan(measurement.coldP95, allowed)) on every call. So a documentation run fails the suite, and the CI step 'HNSW recall and latency at 100,000 vectors' cannot pass where an efSearch=256 search exceeds 0.833 ms p95. A red step hides whether the real gates hold. Those gates pass with about 1% margin (100k cold p95 0.822 and 0.823 ms against 0.833 ms).",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m03-semantic-07",
+     "title": "Vector and graph files with tombstone bits beyond the row/node count are accepted, and rows appended later are born tombstoned",
+     "category": "bug",
+     "spec_ref": "7.3 (memory-mapped vector and graph files); damaged or hostile file handling",
+     "locations": [
+      "Sources/ZTronSearchEngineSemantic/Vector/QuantizedVectorStore.swift:275",
+      "Sources/ZTronSearchEngineSemantic/Vector/QuantizedVectorStore.swift:292-294",
+      "Sources/ZTronSearchEngineSemantic/Vector/QuantizedVectorStore.swift:513-532",
+      "Sources/ZTronSearchEngineSemantic/HNSW/HNSWGraph.swift:423-424"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "Both decoders compare the live or deleted count with Bitset.population. That counts every bit of every word, including bits above the row/node count in the last word, and nothing requires those bits to be zero. HNSWIndex(store:graphAt:) compares tombstones only for 0..<store.count. A file with such a bit, and its count adjusted to match, is accepted with a phantom tombstone. The next appended row or node lands on that bit (upsert appends at `count`, and HNSWGraph.insert only reserves words) and is tombstoned from birth.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m03-semantic-08",
+     "title": "Id identity differs between mapped rows (byte compare) and the in-memory overlay (canonical equivalence)",
+     "category": "bug",
+     "spec_ref": "7.3 (vector store keyed by SearchableID)",
+     "locations": [
+      "Sources/ZTronSearchEngineSemantic/Vector/QuantizedVectorStore.swift:430-434",
+      "Sources/ZTronSearchEngineSemantic/Vector/QuantizedVectorStore.swift:683-700",
+      "Sources/ZTronSearchEngineSemantic/Vector/QuantizedVectorStore.swift:156-170",
+      "Sources/ZTronSearchEngine/Contracts/Searchable.swift:9-38"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "SearchableID equality is String equality (canonical equivalence). ordinal(of:) looks base rows up with a byte-wise binary search, while the overlay and build's de-duplication use a Swift dictionary. An id stored in the file as NFC is not found under its NFD spelling. An upsert of the NFD spelling therefore appends a second live row for an id that compares equal. remove() of the NFC spelling then retires the appended row (found through the overlay) and leaves the base row live.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m03-semantic-09",
+     "title": "TokenizerLoader approximates where its contract says unsupported files are refused",
+     "category": "false-claim",
+     "spec_ref": "7.3 / 7.4 (the model's own tokenization)",
+     "locations": [
+      "Sources/ZTronSearchEngineSemantic/Tokenization/TokenizerLoader.swift:124-128",
+      "Sources/ZTronSearchEngineSemantic/Tokenization/TokenizerLoader.swift:264-268",
+      "Sources/ZTronSearchEngineSemantic/Tokenization/TokenizerLoader.swift:294-296",
+      "Sources/ZTronSearchEngineSemantic/Tokenization/TokenizerLoader.swift:305-306"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "The doc says 'An unsupported file is refused rather than tokenized approximately'. In practice:\n- model.byte_fallback is never read, so a byte-fallback Unigram model gets <unk> where the reference emits byte pieces.\n- Every Precompiled/Nmt normalizer is replaced by an NFKC reproduction, whatever the charsmap holds (an nmt_nfkc_cf or identity map tokenizes differently).\n- A WordPiece file with \"normalizer\": null gets uncased BERT normalization (lowercase plus accent stripping), where the reference applies none. The Unigram branch correctly uses identity.\n- An unknown post-processor type returns…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m03-semantic-10",
+     "title": "Items embedded on device by embedMissing get the query prefix",
+     "category": "bug",
+     "spec_ref": "7.3 (deterministic item embedding text; only the query is encoded at runtime)",
+     "locations": [
+      "Sources/ZTronSearchEngineSemantic/SemanticIndex.swift:269",
+      "Sources/ZTronSearchEngineSemantic/CoreML/CoreMLEmbeddingProvider.swift:36-38",
+      "Sources/ZTronSearchEngineSemantic/CoreML/CoreMLEmbeddingProvider.swift:125-127",
+      "Sources/ZTronSearchEngineSemantic/EmbeddingProvider.swift"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "embedMissing embeds item text through encodeQuery. CoreMLEmbeddingProvider.encode always prepends configuration.queryPrefix, documented as 'Text put in front of every query ... \"query: \" for the multilingual-e5 family'. The EmbeddingProvider protocol has no way to request a passage embedding, so item vectors made on device carry the query prefix.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m03-semantic-11",
+     "title": "Switching to a locale whose set is unusable reloads, and may rebuild, the base set on every call and then discards it",
+     "category": "performance",
+     "spec_ref": "10 (throttling and memory policy), 5 rule 8",
+     "locations": [
+      "Sources/ZTronSearchEngineSemantic/SemanticIndex.swift:208-234",
+      "Sources/ZTronSearchEngineSemantic/SemanticIndex.swift:218",
+      "Sources/ZTronSearchEngineSemantic/SemanticIndex.swift:385-389",
+      "Sources/ZTronSearchEngineSemantic/SemanticIndex.swift:404"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "setLocale proceeds whenever catalog.resolve(tag).languageTag != activeSet. When the localized set fails, load falls back to open(catalog.base). If the base set is already active, `guard loaded.languageTag != activeSet` then throws the result away. Each call re-maps the base files. When the base ships without a graph file, HNSWIndex.build(over:) rebuilds the whole graph (about 1 ms per vector on the reference device, by the type's doc) only to discard it. Meanwhile `exclusively` holds back every upsert and removal.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m03-semantic-12",
+     "title": "Removals are recorded only for ids present in the active vector set",
+     "category": "bug",
+     "spec_ref": "5 rule 8 / 17 (per-locale vector sets)",
+     "locations": [
+      "Sources/ZTronSearchEngineSemantic/SemanticIndex.swift:189-202",
+      "Sources/ZTronSearchEngineSemantic/SemanticIndex.swift:222-224"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "remove() adds to removedAtRuntime only the ids the current set held, because index.remove(contentsOf:) returns only those. An id that exists only in another locale's set is not recorded, so it is live again after setLocale switches to that set.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m03-semantic-13",
+     "title": "Constrained queries request 200 HNSW neighbours; spec 10 bounds the work at 50, and the ANN gate is measured only at 50",
+     "category": "spec-deviation",
+     "spec_ref": "10 (bounded work: 50 HNSW neighbours), 7.3 (top 50, efSearch 64), 15.1",
+     "locations": [
+      "Sources/ZTronSearchEngine/Service/SearchService.swift:552-558",
+      "Sources/ZTronSearchEngineSemantic/HNSW/HNSWGraph.swift:192",
+      "Sources/ZTronSearchEngine/Contracts/SearchEngineConfiguration.swift:33-36"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "A query with filters or phrases requests min(n*4, max(n,200)) = 200 neighbours. HNSWGraph.search's breadth = max(ef, limit) turns that into a bottom-layer search with ef 200. This is documented in SearchLimits but deviates from the bounded-work rule. HNSWRecallTests measure latency only at limit 50.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m03-semantic-14",
+     "title": "Documentation drift in the semantic scripts and adapters (wrong script paths, truncation wording, pruning test not run in CI)",
+     "category": "false-claim",
+     "spec_ref": "7.3 / 7.4 (conversion pipeline)",
+     "locations": [
+      "Sources/ZTronSearchEngineSemantic/CoreML/CoreMLEmbeddingProvider.swift:4",
+      "Sources/ZTronSearchEngineSemantic/CoreML/CoreMLCrossEncoder.swift:5",
+      "Sources/ZTronSearchEngineSemantic/CoreML/CoreMLCrossEncoder.swift:10",
+      "Scripts/semantic/convert_embedding_model.py:8"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "The scripts live in Scripts/semantic/, but the docs, usage lines and the missing-module error message point to Scripts/convert_*.py and 'pip install -r Scripts/requirements.txt', which does not exist. CoreMLCrossEncoder's doc says 'the passage giving way when the pair is too long', but PairTruncation is longest-first and also cuts a query that is longer than its passage. test_vocabulary_pruning.py covers the pruning that the 80/60 MB budgets depend on, and CI does not run it.",
+     "skeptic": "",
+     "repro": ""
+    }
+   ],
+   "not_checked": "Nothing was run against a real Core ML model or real Hugging Face tokenizer files. So Core ML load and prediction, the resident memory of a loaded model, reload time, and token-id parity of the Swift WordPiece/Unigram tokenizers with the reference tokenizers are unverified. The Python conversion scripts were read, not executed (no coremltools or torch), so vocabulary pruning was not exercised. There were no device or simulator runs: iOS 15 behaviour of NotificationCenter.notifications(named:) an…"
+  },
+  {
+   "module": "m04-ui",
+   "files_read": 57,
+   "lines_read": 10500,
+   "skeptic_ran": true,
+   "findings": [
+    {
+     "id": "C2-m04-ui-01",
+     "title": "The 15.7 parity gate is not met. iOS 15/16, the package floor, were never sampled or run, so the field ships iOS 17 metrics and behavior there without verification",
+     "category": "spec-missing",
+     "spec_ref": "12.4, 12.5 matrix (15.5, 16.4, 17.5, 18.x, beta), 15.7 (every cell), 12.2 rule 12",
+     "locations": [
+      "Sources/ZTronSearchEngineUI/ZTronSearchFieldMetrics+Sampled.swift:8",
+      "Sources/ZTronSearchEngineUI/ZTronSearchFieldMetrics.swift:223-240",
+      "Sources/ZTronSearchEngineUI/ZTronSearchFieldMetrics.swift:272",
+      "ParityHost/Results/summary.md"
+     ],
+     "found_severity": "high",
+     "verdict": "confirmed",
+     "severity": "high",
+     "summary": "sampledVersions is [17, 18], and nearestSampledVersion maps iOS 15 and 16 to 17 and iOS 26/27 to 18. On those versions the field uses another version's field height, insets, glyph and token frames, durations and behavior flags (clearRemovesTokens, clearBeginsEditing, submitKeepsEditing, typingReplacesSelectedTokens, conversionSelectsToken), and none of it was ever compared with the UIKit field of that version. The matrix is mostly unattempted or failing. The README discloses that the gate is not met, but it is still a 15.7 release gate.",
+     "skeptic": "sampledVersions is [17, 18], and both the metrics and ZTronSearchFieldBehavior are looked up through nearestSampledVersion. So iOS 15 and 16 get the iOS 17 sample, and iOS 26 and 27 get the iOS 18 sample. The package floor is .iOS(.v15). I tallied summary.csv myself: 7440 rows, of which 6659 are not runnable, 602 fail and 179 pass. 15.5 and 16.4 have 3200 not-runnable cells each and 0 ran. On 27.0…",
+     "repro": "nearest.swift printed: iOS 15 -> sampled 17, iOS 16 -> sampled 17, iOS 26 -> sampled 18, iOS 27 -> sampled 18. The CSV tally is as given above."
+    },
+    {
+     "id": "C2-m04-ui-02",
+     "title": "Setting pageSize while a query is in flight drops all of its snapshots and leaves the previous query's hits stuck on screen",
+     "category": "bug",
+     "spec_ref": "13 (results model, generation guard, paging), 14.5",
+     "locations": [
+      "Sources/ZTronSearchEngineUI/ZTronSearchResultsModel.swift:65-70",
+      "Sources/ZTronSearchEngineUI/ZTronSearchResultsModel.swift:78-81",
+      "Sources/ZTronSearchEngineUI/ZTronSearchResultsModel.swift:131",
+      "Sources/ZTronSearchEngineUI/ZTronSearchResultsModel.swift:149-152"
+     ],
+     "found_severity": "medium",
+     "verdict": "partly",
+     "severity": "medium",
+     "summary": "Setting pageSize to a different value while a service-backed query is in flight makes every snapshot of that query fail the equality guard. The previous query's hits stay published with isLoading false until the text or tokens change or submit() is called. reset() also silently reverts pageSize to 20.",
+     "skeptic": "The mechanism is real. The pageSize setter writes query.limit and does not bump revision. SearchQuery's synthesized Hashable includes limit. SearchService echoes state.query, the query it was handed, into every snapshot, so a stream started at limit 20 always carries limit 20, and apply's `snapshot.query == query` drops all of them. streamEnded then clears isLoading, and update() with the same tex…",
+     "repro": "pagesize.swift printed, for case B: 'apply: DROPPED snapshot of \"harb\" (snapshot limit 20, model limit 50, revision match true)' twice, then 'streamEnded: isLoading -> false' and 'query=\"harb\" limit=5…"
+    },
+    {
+     "id": "C2-m04-ui-03",
+     "title": "Ending editing drops the token selection and fires onSelectionChanged, while the UIKit reference keeps the token selected (recorded in both samples, checked by nothing)",
+     "category": "spec-deviation",
+     "spec_ref": "12.2 rules 2 and 12, 12.3 (modifiers fire once per UIKit callback), 12.5",
+     "locations": [
+      "Sources/ZTronSearchEngineUI/ZTronSearchFieldCore.swift:483-505",
+      "Sources/ZTronSearchEngineUI/ZTronSearchFieldCore.swift:499-501",
+      "Sources/ZTronSearchEngineUI/ZTronSearchField.swift:637",
+      "Tests/ZTronSearchEngineUITests/SearchFieldCoreTests.swift:504-511"
+     ],
+     "found_severity": "medium",
+     "verdict": "partly",
+     "severity": "low",
+     "summary": "When the field ends editing, the clone clears a selected token, writes [] to the host's tokenSelection binding and fires onSelectionChanged. The UIKit reference's selectedTextRange still covers the token after didEndEditing, and it reports no selection change. This is a state and callback divergence only; the samples show no user-visible effect.",
+     "skeptic": "The divergence itself is real. In the current core, focusChanged(false) at Core.swift:495-504 sets selection = [] and selectionChanged = true but logs no didChangeSelection. apply then writes the host's tokenSelection binding and calls onSelectionChanged, so the callback fires with no UIKit counterpart, against 12.3 and section 16's 'fires exactly once per UIKit callback'. The core file (22:56) pr…",
+     "repro": "profilediff.py, which applies EventLogComparator's filters to all 32 sampled actions, printed: 'STATE DIFF blur-with-selected-token | ref: text \"\", tokens [\"Maps\"], selected [\"Maps\"], not editing | cl…"
+    },
+    {
+     "id": "C2-m04-ui-04",
+     "title": "On iOS 18, tapping the text to deselect a token logs two extra caret moves that the reference does not log",
+     "category": "spec-deviation",
+     "spec_ref": "12.2 rule 2, 12.5 (text selection compared from iOS 18), 15.7 (event log identical)",
+     "locations": [
+      "Sources/ZTronSearchEngineUI/ZTronSearchField.swift:684-689",
+      "Sources/ZTronSearchEngineUI/ZTronSearchField.swift:417-426",
+      "ParityHost/Samples/ios-18.json (eventProfile vs cloneEventProfile[tap-text-deselects])"
+     ],
+     "found_severity": "medium",
+     "verdict": "partly",
+     "severity": "low",
+     "summary": "On iOS 18, a tap on the text that deselects a token produces two extra caret reports (touch point, then word end) after the reference's single deselection report. This is recorded in the committed sample, which predates the field's last edit. The current code still has the path. The effect is transient, and the final state matches.",
+     "skeptic": "My replay of the samples with the harness filters confirms the auditor's analysis. tap-text-deselects is the only 18.6 log difference: the clone appends didChangeSelection(tokens: [], text: 4+0) and then (6+0). 17.5 has no difference. The matrix cannot see it, because tap-select's second tap lands on an empty text point. The current code still contains the mechanism. tappedInput deselects, which l…",
+     "repro": "profilediff.py printed for ios-18.json 'LOG DIFF tap-text-deselects', with the clone ending in '... didChangeSelection(tokens: [], text: 6+0)', 'didChangeSelection(tokens: [], text: 4+0)', 'didChangeS…"
+    },
+    {
+     "id": "C2-m04-ui-05",
+     "title": "The parity suite does not check what the spec places under it: three token scripts, the public modifiers' callback counts, and the sampled clone profile",
+     "category": "test-integrity",
+     "spec_ref": "UI parity suite list (spec p.48: token scripts incl. insert/remove through binding, onTokenDelete veto, programmatic text-to-token; every modifier in the 12.3 map fires exactly once per UIKit callback), 15.7",
+     "locations": [
+      "ParityHost/Sources/ZTronSearchEngineUIParity/ParityScript.swift:12-88",
+      "ParityHost/Sources/ZTronSearchEngineUIParity/CloneField.swift:19-25",
+      "ParityHost/Sources/ZTronSearchEngineUIParity/CloneField.swift:63-66",
+      "ParityHost/App/ParityHostUITests/SamplerUITests.swift:36-38"
+     ],
+     "found_severity": "medium",
+     "verdict": "confirmed",
+     "severity": "medium",
+     "summary": "Three gaps. (1) The 10 matrix scripts have no binding insert/remove, no onTokenDelete veto and no programmatic conversion, and FieldSetup.allowsDeletingTokens is never false in a matrix script. (2) The compared clone log is the core's own onSearchFieldEvent stream. The public .onEditingChanged/.onSubmit/.onSearchCancel calls are counted into editingChanges/submitCount/cancelCount and never compared; nothing else in the repository reads them. (3) The sampler stores the clone's log and final state for every elementary action and its doc says the reference log 'is what the clone's log is held to'…",
+     "skeptic": "There are 10 matrix scripts. None of them mutates the bindings, vetoes a deletion or converts programmatically. The clone host never registers onTokenDelete, onSelectionChanged, onClear, editingPolicy or textInputPolicy, and allowsDeletingTokens is never false in a matrix script. grep finds submitCount, cancelCount and editingChanges only in CloneField.swift, where they are written and never read.…",
+     "repro": "grep over Sources, Tests, ParityHost and Scripts: submitCount, cancelCount and editingChanges match only CloneField.swift:23-25,64-66; cloneEventProfile and cloneFinalStates match only SamplerUITests.…"
+    },
+    {
+     "id": "C2-m04-ui-06",
+     "title": "The @EnvironmentObject lint is vacuous over the repository and treats any attachment anywhere as attaching every screen",
+     "category": "test-integrity",
+     "spec_ref": "13.1 / UI tests ('a screen that reads a model through @EnvironmentObject without an attaching modifier fails the lint test')",
+     "locations": [
+      "Tests/ZTronSearchEngineUITests/LintTests.swift:154-161",
+      "Sources/ZTronSearchFixtures/SourceLint.swift:211-236"
+     ],
+     "found_severity": "medium",
+     "verdict": "partly",
+     "severity": "low",
+     "summary": "The lint passes every model once any scanned file contains an attaching modifier or any `.environmentObject(` call. It runs only over ParityHost and the nonexistent Examples directory, which contain no @EnvironmentObject, so its repository check is vacuous. It cannot run on host code, so it could not have caught a crash there in any case.",
+     "skeptic": "Both mechanisms are real. SourceLint treats a model as attached when any scanned file contains one of its modifiers or any `.environmentObject(` call for any object. The repository-level test scans ParityHost and Examples. Examples does not exist, and no ParityHost .swift file contains EnvironmentObject or `.environmentObject(` (grep exits 1), so that test checks nothing. The failure scenario cann…",
+     "repro": "lint.swift, a copy of unattachedEnvironmentObjects, printed: reader alone -> ['Rows.swift:2 reads ZTronSearchResultsModel without an attaching modifier']; reader + unrelated .environmentObject(setting…"
+    },
+    {
+     "id": "C2-m04-ui-07",
+     "title": "With an editingPolicy set, the host's .focused binding cannot begin editing (plausible)",
+     "category": "bug",
+     "spec_ref": "12.2 ('.focused($isFocused) works directly: the field forwards focus to its inner text input'), 12.3 editingPolicy row, UI suite 'Focus round trip through .focused'",
+     "locations": [
+      "Sources/ZTronSearchEngineUI/ZTronSearchField.swift:345",
+      "Sources/ZTronSearchEngineUI/ZTronSearchField.swift:652",
+      "Sources/ZTronSearchEngineUI/ZTronSearchField.swift:729",
+      "Sources/ZTronSearchEngineUI/ZTronSearchField.swift:691-699"
+     ],
+     "found_severity": "medium",
+     "verdict": "confirmed",
+     "severity": "medium",
+     "summary": "When an editingPolicy is configured and the field is not editing, allowsInput is false and the inner TextField is .disabled. requestFocus(), the only path that asks the policy and enables the input, is reached only from taps. A host that sets its FocusState to true targets a disabled control, and nothing in the field observes the request, so the policy is never asked and editing never begins. UIKit's becomeFirstResponder() asks textFieldShouldBeginEditing and begins editing when allowed. Derived from code; not run, because simulators may not be booted.",
+     "skeptic": "This is derived from code and was not run (no simulator). With a policy set, allowsInput is false while idle (synchronize :652, blur :729), and the inner TextField is .disabled (:345). requestFocus(), the only code that asks the policy and enables the input, is reached only from the editing gate's tap (:488), tappedOutsideTokens (:681), tappedToken (:675) and the clear button's takesFocus (:640). …",
+     "repro": "No runtime repro is possible without a simulator. The call-site trace above shows no path from the host's FocusState to requestFocus()."
+    },
+    {
+     "id": "C2-m04-ui-08",
+     "title": "On iOS 18+, text set through the binding while editing keeps the caret at its old UTF-16 offset (possibly inside a surrogate pair), and the field pushes that caret into the input (plausible)",
+     "category": "spec-deviation",
+     "spec_ref": "12.2 rule 12, 12.5 (text selection compared from iOS 18)",
+     "locations": [
+      "Sources/ZTronSearchEngineUI/ZTronSearchFieldCore.swift:180-187",
+      "Sources/ZTronSearchEngineUI/ZTronSearchFieldCore.swift:143-146",
+      "Sources/ZTronSearchEngineUI/ZTronSearchField.swift:647-653",
+      "Sources/ZTronSearchEngineUI/ZTronSearchField.swift:456-471"
+     ],
+     "found_severity": "medium",
+     "verdict": "partly",
+     "severity": "medium",
+     "summary": "On iOS 18 and later, host-set text while editing leaves the core caret at its old UTF-16 offset, which may fall inside a surrogate pair, and the field pushes that caret into the inner input. If SwiftUI honors the selection, the next keystroke lands mid-text, unlike UIKit's caret-to-end. The runtime effect is unverified.",
+     "skeptic": "The mechanism is confirmed in code. When the host sets text while the field is editing, adopt() keeps textSelection.lowerBound, clamped but not scalar-aligned. On iOS 18, synchronize -> setBuffer then sets the inner input's TextSelection to sentinels + that caret. My repro shows caret 3 kept for 'harbor', where the end would be 6, and an index that is neither scalar- nor Character-aligned for '😀x…",
+     "repro": "textlogic.swift printed: 'text -> harbor with caret 3: core caret 3 (end would be 6); index scalar-aligned=true ...; prefix before it: \"\\u{200B}har\"'; 'text -> \\u{1F600}x with caret 1: core caret 1 (e…"
+    },
+    {
+     "id": "C2-m04-ui-09",
+     "title": "Smart-quote/dash undo is incomplete for locale quotes and rewrites characters the user entered on purpose",
+     "category": "spec-deviation",
+     "spec_ref": "12.2 ('smart quotes and smart dashes are off'); reference sets smartQuotesType/smartDashesType = .no",
+     "locations": [
+      "Sources/ZTronSearchEngineUI/ZTronSearchFieldCore.swift:91-105",
+      "Sources/ZTronSearchEngineUI/ZTronSearchFieldCore.swift:228",
+      "ParityHost/Sources/ZTronSearchEngineUIParity/ReferenceField.swift:45-46"
+     ],
+     "found_severity": "low",
+     "verdict": "confirmed",
+     "severity": "low",
+     "summary": "plain() runs on every input change and maps only U+2018/2019, U+201C/201D, U+2014 and U+2013. Locale smart punctuation (German/Polish „“, ‚‘, French « ») is left half-substituted. Characters entered deliberately (long-press en/em dash, pasted curly quotes) are rewritten, an em dash becoming two characters. With substitution off, the reference keeps both as typed, so the text binding and shouldChange payloads differ.",
+     "skeptic": "plain() maps only U+2018/2019, U+201C/201D, U+2014 (to '--') and U+2013, and it runs over the whole proposed text on every input change. The reference sets smartQuotesType and smartDashesType to .no, so it keeps deliberately entered characters as typed. That makes this a rule-12 deviation in both directions: locale quotes are left half-substituted, and deliberate dashes and curly quotes are rewrit…",
+     "repro": "textlogic.swift printed: „Hallo“ -> „Hallo\"; ‚x‘ -> ‚x'; « bonjour » -> « bonjour »; 1–3 -> 1-3; a—b -> a--b; “curly” -> \"curly\"."
+    },
+    {
+     "id": "C2-m04-ui-10",
+     "title": "shouldChange payloads and textInputPolicy changes are computed per grapheme, not per UTF-16 edit",
+     "category": "spec-deviation",
+     "spec_ref": "12.3 (shouldChangeCharactersIn mapping), 15.7 (identical payloads)",
+     "locations": [
+      "Sources/ZTronSearchEngineUI/ZTronSearchFieldTypes.swift:101-112",
+      "Sources/ZTronSearchEngineUI/ZTronSearchFieldCore.swift:241"
+     ],
+     "found_severity": "low",
+     "verdict": "confirmed",
+     "severity": "low",
+     "summary": "ZTronTextChange.between diffs Array(old) against Array(new), which are Characters. When a keystroke extends the previous grapheme (a combining mark, Thai tone mark or emoji modifier), the change is reported as replacing the base character instead of inserting the new scalar. UIKit reports the inserted scalar at the caret. The matrix types only ASCII, so this is never exercised.",
+     "skeptic": "ZTronTextChange.between diffs Characters. A keystroke that extends the previous grapheme is reported as a replacement of the base character, not as an insertion at the caret, and the textInputPolicy sees the same wrong change. Thai tone marks and Devanagari vowel signs are real keystrokes that do this. The emoji-modifier example is contrived, because the iOS emoji keyboard inserts the modified emo…",
+     "repro": "textlogic.swift printed: cafe -> cafe\\u{301}: clone shouldChange(3, 1, \"e\\u{301}\") vs UTF-16 diff (4, 0, \"\\u{301}\"); \\u{E01} -> \\u{E01}\\u{E48}: clone (0, 1, ...) vs (1, 0, \"\\u{E48}\"); \\u{915} -> \\u{91…"
+    },
+    {
+     "id": "C2-m04-ui-11",
+     "title": "'Not runnable' overrides comparison failures already recorded, hiding 203 failing cells from the failure counts",
+     "category": "test-integrity",
+     "spec_ref": "15.7 (every cell), 12.5",
+     "locations": [
+      "ParityHost/Sources/ZTronSearchEngineUIParity/ParitySession.swift:216-229",
+      "ParityHost/App/ParityHostUITests/ParityRemote.swift:105-114"
+     ],
+     "found_severity": "low",
+     "verdict": "confirmed",
+     "severity": "low",
+     "summary": "When every driver problem is an undelivered or missing key, the cell becomes not-runnable even if checkpoints reached earlier failed, including the key-independent initial checkpoint. The rule does not require both fields to have failed: a key counts as undelivered when that field's own log does not grow, so a clone that ignores a hardware delete is reported as a driver limitation. The reason text says 'to either field' even when only one side is listed. gate.py still blocks not-runnable cells, so the gate is not falsely opened, but summary.md understates failures.",
+     "skeptic": "finish() sets notRunnable whenever every driver problem is a missing or undelivered key, overriding failures already recorded. A key counts as undelivered when that side's own log did not grow, so a clone that ignores a delete key is reported as a driver limitation. The reason text says 'to either field' even when only one side failed. gate.py blocks not-runnable cells, so the gate is not falsely …",
+     "repro": "status.swift printed: a clone ignoring the delete key, with an initial pixel failure -> 'notRunnable | the driver could not deliver the script's keys to either field: clone: XCUITest did not deliver t…"
+    },
+    {
+     "id": "C2-m04-ui-12",
+     "title": "Committed parity results predate the committed localization, and the README overstates what they show",
+     "category": "false-claim",
+     "spec_ref": "15.7, 12.5 (RTL Arabic locale)",
+     "locations": [
+      "ParityHost/Results/summary.md",
+      "Sources/ZTronSearchEngineUI/Resources/Localizable.xcstrings",
+      "README.md:216-218"
+     ],
+     "found_severity": "low",
+     "verdict": "partly",
+     "severity": "low",
+     "summary": "The committed results (01:45) predate the Arabic localization (xcstrings, 02:09). 735 RTL accessibility differences pair the reference's Arabic labels with the clone's English 'Clear text' or 'Cancel', so they do not describe the current product. README:216-218 overstates the LTR default-size match: iPhone 15 bold-text L/ltr cells give 18 fails and 2 not-runnable per version, and one 18.6 Pro Max hardware type cell fails because of a key dropped on the reference.",
+     "skeptic": "The timestamps support the staleness claim. summary.md and summary.csv date from 2026-11-15 01:45:45 and Localizable.xcstrings from 02:09:15; the xcstrings now has ar for every key ('Clear text' -> 'مسح النص'), and the host's Info.plist declares ar. The RTL results pair the reference's Arabic labels with the clone's English ones. The README overstates the results. Bold text fails on iPhone 15 at L…",
+     "repro": "stat: summary.md 2026-11-15 01:45:45, Localizable.xcstrings 02:09:15. Scan: {'Clear text': 712, 'Cancel': 23}, 735 total in 363 files. type.json: status fail, 'typed state: text: reference \"mp\", clone…"
+    },
+    {
+     "id": "C2-m04-ui-13",
+     "title": "iOS 18 caret reports near the end of the text are dropped if TextSelection indices count UTF-8 (plausible)",
+     "category": "bug",
+     "spec_ref": "12.5 (text selection observable and compared from iOS 18)",
+     "locations": [
+      "Sources/ZTronSearchEngineUI/ZTronSearchField.swift:428-441"
+     ],
+     "found_severity": "low",
+     "verdict": "uncertain",
+     "severity": "low",
+     "summary": "utf16Offsets accepts an index only if it is <= the endIndex of a string of N ASCII spaces, where N is the buffer's UTF-16 count. The comment claims this holds 'whichever encoding it counts in'. For a UTF-8-counted index it does not: the 3-byte sentinel alone makes the UTF-8 length exceed the UTF-16 length. Carets in the last positions are then rejected and the move goes unreported. Which encoding SwiftUI's TextSelection indices use was not verified, because no simulator was available.",
+     "skeptic": "The conditional claim holds at the String level. A native string's end index is UTF-8-encoded (9[utf8]) and fails the guard against the 7-unit limit, while a UTF-16 bridged index (7[utf16]) passes. But the only device evidence points the other way. In ios-18.json cloneEventProfile[tap-text-deselects], the last entry, didChangeSelection(tokens: [], text: 6+0) after 4+0, can only come from inputSele…",
+     "repro": "bridge.swift printed: 'native end: 9[utf8] accepted=false'; 'bridged end: 7[utf16] accepted vs native buffer=7..<7'. textlogic.swift: for \"​harbor\", native indices at UTF-16 offsets 6 and 7 are reject…"
+    },
+    {
+     "id": "C2-m04-ui-14",
+     "title": "Select-all then entering identical text is treated as backspace-at-start: it selects, then deletes, the last token",
+     "category": "bug",
+     "spec_ref": "12.2 rule 3 (sentinel backspace), rule 12",
+     "locations": [
+      "Sources/ZTronSearchEngineUI/ZTronSearchFieldCore.swift:231-234",
+      "Sources/ZTronSearchEngineUI/ZTronSearchField.swift:389-399"
+     ],
+     "found_severity": "low",
+     "verdict": "partly",
+     "severity": "low",
+     "summary": "Select-all followed by typing or pasting text identical to the current text is indistinguishable from backspace-at-start. The clone logs shouldChange(-1, 1, \"\", true) and selects the last token, and a repeat deletes it. What UIKit does here was never sampled, and given its token-spanning selection it probably does not 'keep the token'.",
+     "skeptic": "The misclassification is real. Selecting all in the inner input covers the sentinel, so replacing the content with identical text loses the sentinel while the stripped text stays equal. Both the field and the core then treat it as backspace-at-start, which selects the last token and, on a repeat, deletes it. Replacing the content with different text is an ordinary change. The claimed UIKit behavio…",
+     "repro": "textlogic.swift printed: 'tokens [Maps], text \"a\", select all, type \"a\": deleteBackwardAtStart (selects, then deletes, the last token)'. The same output was printed for a real backspace at start and f…"
+    }
+   ],
+   "not_checked": "ParityHost Sources not read: ReferenceSampler.swift (654 lines, how metrics and colors are sampled), most of ReferenceField.swift, ReferenceField+Layout.swift, ParityStage.swift, ParityProtocol.swift, Diagnostics.swift, SymbolLab.swift, ParitySchema.swift, ParityHost.swift. App not read: AppMain.swift, ParityMatrixUITests.swift, DiagnosticsUITests.swift, Xcode project/scheme. Tools: sample.py and matrix.py after line 120 not read. Tests: ComparatorTests bodies and the rest of HostCapabilityTests…"
+  },
+  {
+   "module": "m05-adapters",
+   "files_read": 85,
+   "lines_read": 14200,
+   "skeptic_ran": false,
+   "findings": [
+    {
+     "id": "C2-m05-adapters-01",
+     "title": "The section 15.9 gate over SQLite never runs in CI, and it failed in the one release run",
+     "category": "test-integrity",
+     "spec_ref": "15.9; 17 milestone 2 gate; 18.1 packages 31-32",
+     "locations": [
+      "Adapters/ZTronSearchEngineSQLite/Tests/ZTronSearchEngineSQLiteTests/DatabaseTargetsTests.swift:68-71",
+      "Adapters/ZTronSearchEngineSQLite/Tests/ZTronSearchEngineSQLiteTests/DatabaseTargetsTests.swift:179",
+      "Adapters/ZTronSearchEngineSQLite/Tests/ZTronSearchEngineSQLiteTests/DatabaseTargetsTests.swift:35-39",
+      ".github/workflows/adapter-tests.yml:57-63"
+     ],
+     "found_severity": "high",
+     "verdict": "unverified",
+     "severity": "high",
+     "summary": "testSection159TargetsOverSQLite is the only test that measures the 15.9 targets through the reference adapter. Under #if DEBUG it throws XCTSkip (line 70). The adapter workflow runs only `swift test` and `swift test --sanitize=thread`, both debug builds, so in CI the test always skips and the job passes. The ci.yml quality-targets job runs only the root package's PerformanceTests, which use an in-memory fake. In the orchestrator's release run the test failed the 100-row upsert target. Secondary gaps: the test injects an in-memory dictionary resolver and never exercises the adapter's BundleLoca…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-02",
+     "title": "A retry in the same process restarts the 968 MB weights file from byte 0 (resume works only per file)",
+     "category": "spec-deviation",
+     "spec_ref": "14.4 'a retry re-verifies and resumes instead of starting over'; 15.6 'Download 968 MB, resumable'; 17 open question (the bridge may own resume)",
+     "locations": [
+      "Adapters/ZTronSearchEngineAssetKit/Sources/ZTronSearchEngineAssetKit/FetchOperation.swift:260-264",
+      "Adapters/ZTronSearchEngineAssetKit/Sources/ZTronSearchEngineAssetKit/FetchOperation.swift:279-284",
+      "Adapters/ZTronSearchEngineAssetKit/Sources/ZTronSearchEngineAssetKit/FetchCoordinator.swift:78-84",
+      "Adapters/ZTronSearchEngineAssetKit/Sources/ZTronSearchEngineAssetKit/AssetKitModelAssetProvider.swift:183-186"
+     ],
+     "found_severity": "high",
+     "verdict": "unverified",
+     "severity": "high",
+     "summary": "On any failure the bridge fails the fetch and withdraws every ZTronAssetKit request through group.cancelAll(). Failures include .offline, .policy when the device leaves Wi-Fi under .wifiOnly, and any resolve error. A cancelled reader has the same effect. With no interest left, ZTronAssetKit retires the job: it cancels the transfer ('Stop, discarding the partial') and removeJob drops the job's state. A new job in the same process adopts a resume point only from launchResumes, so earlier partials are found only at launch. Stored files are kept, so resume works per file only. For the reference mo…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-03",
+     "title": "View and virtual-table sources are never refreshed by the change stream",
+     "category": "bug",
+     "spec_ref": "9.2 rule 5",
+     "locations": [
+      "Adapters/ZTronSearchEngineSQLite/Sources/ZTronSearchEngineSQLite/SQLiteExpressions.swift:204-207",
+      "Adapters/ZTronSearchEngineSQLite/Sources/ZTronSearchEngineSQLite/SQLiteExpressions.swift:218-235",
+      "Adapters/ZTronSearchEngineSQLite/Sources/ZTronSearchEngineSQLite/SQLiteExpressions.swift:272",
+      "Adapters/ZTronSearchEngineSQLite/Sources/ZTronSearchEngineSQLite/SQLiteExpressions.swift:278"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "Core subscribes with changes(in: Set(tables.map(\\.name))) and matches table.name == change.table. The source docs advertise 'The table, view or virtual table'. When `name` is not given, a View source gets the view's name and a VirtualTable source gets the virtual table's name (line 278). SQLite's update hook never reports either name. Writes to a view's base table, including writes through an INSTEAD OF trigger on the view, are reported under the base table. FTS4/FTS5 writes are reported under the shadow tables. So these sources never receive a change and stay stale until an explicit refresh. …",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-04",
+     "title": "The Qwen3 reference ModelAsset cannot be built from the package, and the documented way to complete it is circular",
+     "category": "spec-missing",
+     "spec_ref": "2 (package table: 'the Qwen3 asset descriptor'); 14.1 SHA-256 per file; 14.2 reference model",
+     "locations": [
+      "Adapters/ZTronSearchEngineMLX/Sources/ZTronSearchEngineMLX/Qwen3Asset.swift:6-25",
+      "Adapters/ZTronSearchEngineMLX/Sources/ZTronSearchEngineMLX/Qwen3Asset.swift:89-99",
+      "Adapters/ZTronSearchEngineMLX/README.md:193-245",
+      "Adapters/ZTronSearchEngineMLX/Scripts/pin-qwen3-asset.swift"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "Qwen3Asset.verifiedManifest has no SHA-256 for config.json or tokenizer_config.json, so Qwen3Asset.verifiedManifest.asset() throws .missingChecksums. The package ships no usable reference ModelAsset. The README says to pin the two values 'once the files exist locally (downloaded by the host's asset provider, or by any other means)'. The host's asset provider, the AssetKit bridge, refuses any descriptor whose files lack a 64-hex SHA-256 (it answers .failed(.checksum)). So the files have to come from another channel first, and then a script has to be run by hand.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-05",
+     "title": "Cancellation during the prompt prefill is not bounded by one token / 150 ms, and no test covers it",
+     "category": "spec-deviation",
+     "spec_ref": "15.6 'generation stops within one token, at most 150 ms'; 14.1 'honours task cancellation within one decoded token'",
+     "locations": [
+      "Adapters/ZTronSearchEngineMLX/Sources/ZTronSearchEngineMLX/MLXLanguageModel.swift:424-442",
+      "Adapters/ZTronSearchEngineMLX/README.md:140-142",
+      "Adapters/ZTronSearchEngineMLX/Tests/ZTronSearchEngineMLXTests/Qwen3IntegrationTests.swift:358-394",
+      "mlx-swift-lm@3b339ad6 Libraries/MLXLLM/LLMModel.swift (prepare)"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "The prefill runs inside TokenIterator(...). The default step is 512 (Tuning.prefillStepSize is nil). A prompt of at most 512 tokens goes through in a single forward, and LLMModel.prepare returns .tokens(y) when total <= stepSize, so nothing checks for cancellation during it. A longer prompt is checked only between chunks of up to 512 tokens. Those chunks are submitted with asyncEval, and on CancellationError the adapter waits for the submitted GPU work (MLX.Stream.defaultStream.synchronize(), line 438). A cancel during the prefill can therefore take a whole 512-token forward, and 15.6 itself b…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-06",
+     "title": "The 1.8 GB resident-memory test never samples the prefill peak",
+     "category": "test-integrity",
+     "spec_ref": "15.6 'Resident memory during generation: 1.8 GB'",
+     "locations": [
+      "Adapters/ZTronSearchEngineMLX/Tests/ZTronSearchEngineMLXTests/Qwen3IntegrationTests.swift:523-538",
+      "Adapters/ZTronSearchEngineMLX/Tests/ZTronSearchEngineMLXTests/Qwen3IntegrationTests.swift:129-140"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "testFootprintDuringGenerationStaysWithinBudget builds a 3,000-token prompt but reads ri_phys_footprint, the current footprint, only when a .delta arrives, which is after the prefill. The prefill is the most memory-hungry phase of the generation: six chunks with attention against a growing cache, plus MLX's transient buffers. It is never sampled. rusage_info_v4.ri_lifetime_max_phys_footprint would give the true peak.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-07",
+     "title": "An UPDATE that changes the rowid leaves a ghost document, and the README's list of unreported writes omits it",
+     "category": "bug",
+     "spec_ref": "9.2 rule 5",
+     "locations": [
+      "Adapters/ZTronSearchEngineSQLite/README.md:132-138",
+      "Adapters/ZTronSearchEngineSQLite/Sources/ZTronSearchEngineSQLite/ChangeTracker.swift",
+      "Sources/ZTronSearchEngine/Service/SearchService+Context.swift:603-610"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "For `UPDATE tools SET id = 30 WHERE id = 3`, where id is an INTEGER PRIMARY KEY (a rowid alias), the update hook reports only rowid 30. Core re-reads rowid 30 and adds tools#30. Rowid 3 is never named, so tools#3 stays in the index. The README lists writes the hook misses and tells the host to call reportUnknownChanges after them, but a rowid change is not on that list.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-08",
+     "title": "ModelAssetManifest.validate(against:) does not tie a new SHA-256 to the Git blob id, as its docs claim",
+     "category": "false-claim",
+     "spec_ref": "14.1 SHA-256 per file",
+     "locations": [
+      "Adapters/ZTronSearchEngineMLX/Sources/ZTronSearchEngineMLX/ModelAssetManifest.swift:136-174",
+      "Adapters/ZTronSearchEngineMLX/Sources/ZTronSearchEngineMLX/Qwen3Asset.swift:93-99",
+      "Adapters/ZTronSearchEngineMLX/Tests/ZTronSearchEngineMLXTests/Qwen3AssetTests.swift:11-12",
+      "Adapters/ZTronSearchEngineMLX/Tests/ZTronSearchEngineMLXTests/Qwen3AssetTests.swift:93-114"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "The docs say a SHA-256 that public metadata cannot confirm 'is accepted only together with the matching Git blob id, which ties it to the pinned commit'. validate(against:) only checks that the blob id is present and equal to the reference value. Nothing relates the blob id to the SHA-256, so any SHA-256 is accepted next to a copied blob id. The tie exists only inside Scripts/pin-qwen3-asset.swift, which hashes the local file both ways.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-09",
+     "title": "BundleLocalizedStringResolver returns the uppercased key as a string when NSShowNonLocalizedStrings is set",
+     "category": "bug",
+     "spec_ref": "9.2 rule 3 (the raw key never enters the index)",
+     "locations": [
+      "Adapters/ZTronSearchEngineSQLite/Sources/ZTronSearchEngineSQLite/BundleLocalizedStringResolver.swift:64-67"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "The resolver detects a missing key by passing a sentinel as `value:`. When the NSShowNonLocalizedStrings user default is set, Foundation logs and returns the capitalized key instead of `value`. The sentinel check then fails, and the uppercased key is returned as that language's string. Core's projector drops a string only when it equals the key exactly, so the uppercased key enters the index.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-10",
+     "title": "A public initializer can trap the process: preconditionFailure in SearchBindingValue.init(_:)",
+     "category": "api",
+     "spec_ref": "9.2 rule 8 (adapter maps bindings)",
+     "locations": [
+      "Adapters/ZTronSearchEngineSQLite/Sources/ZTronSearchEngineSQLite/SQLiteBindings.swift:36-37"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "SearchBindingValue.init(_ binding: Binding?) ends with `preconditionFailure(\"SQLite.swift cannot bind a value of type ...\")` for any other Binding conformance. Elsewhere the adapter turns SQLite.swift's traps into thrown errors (bindingCountMismatch), but this one remains a crash.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-11",
+     "title": "load() cannot be cancelled, and unload() during a load keeps about 1 GB until the weight read finishes",
+     "category": "bug",
+     "spec_ref": "15.6 (on a memory warning the LLM unloads first)",
+     "locations": [
+      "Adapters/ZTronSearchEngineMLX/Sources/ZTronSearchEngineMLX/MLXLanguageModel.swift:167-188",
+      "Adapters/ZTronSearchEngineMLX/Sources/ZTronSearchEngineMLX/MLXLanguageModel.swift:233-238",
+      "Adapters/ZTronSearchEngineMLX/Sources/ZTronSearchEngineMLX/MLXLanguageModel.swift:263-277"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "load() runs performLoad in an unstructured Task, and releaseModel() only clears pendingLoad. The pending task is never cancelled, and mlx-swift-lm's async loadWeights runs to completion on a global queue. A superseded load is thrown away only after the weights are fully read and materialized, and only then is clearCache() called.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-12",
+     "title": "The AssetKit adapter's tests run in no CI workflow",
+     "category": "test-integrity",
+     "spec_ref": "17 milestone 8 gate (tests green in CI)",
+     "locations": [
+      ".github/workflows/adapter-tests.yml",
+      ".github/workflows/ci.yml",
+      ".github/workflows/parity.yml",
+      "Adapters/ZTronSearchEngineAssetKit/Package.swift:16"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "No workflow mentions ZTronSearchEngineAssetKit, and the package depends on a sibling checkout of ZTronAssetKit that CI never makes. Its 103 tests (all passing locally per c2-assetkit-adapter.log) never run in CI.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-13",
+     "title": "The asset's max_new_tokens can only lower the 512-token cap",
+     "category": "spec-deviation",
+     "spec_ref": "14.2 'the asset's generation_config.json wins when present'",
+     "locations": [
+      "Adapters/ZTronSearchEngineMLX/Sources/ZTronSearchEngineMLX/SamplingPlan.swift:154-157"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "`if options.maxNewTokens == defaults.maxNewTokens, let assetMaximum = config?.maxNewTokens { maxNewTokens = min(maxNewTokens, assetMaximum) }`: an asset that asks for more than 512 tokens does not win. This has no effect on the reference model (its repository has no generation_config.json) and is defensible given the chat budget, but it is not documented as a deviation.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-14",
+     "title": "Calibration measures to the first visible delta, and the rate counts hidden leading tokens",
+     "category": "spec-deviation",
+     "spec_ref": "14.4 calibration (TTFT <= 3 s, >= 8 tokens/s)",
+     "locations": [
+      "Adapters/ZTronSearchEngineMLX/Sources/ZTronSearchEngineMLX/ChatCalibration.swift:23-24",
+      "Adapters/ZTronSearchEngineMLX/Sources/ZTronSearchEngineMLX/ChatCalibration.swift:163-202"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "TTFT is taken at the first .delta event. Tokens that the think filter or the detokenizer swallow before it push TTFT later, and the rate (generated - 1) / (finished - firstDelta) still counts them in the numerator, which overstates tokens/s. The effect is small with thinking off.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-15",
+     "title": "Stale 'expected to fail against core' comment in EndToEndTests",
+     "category": "false-claim",
+     "spec_ref": "9.2 rule 5 (change stream tests)",
+     "locations": [
+      "Adapters/ZTronSearchEngineSQLite/Tests/ZTronSearchEngineSQLiteTests/EndToEndTests.swift:383-392"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "The comment says three tests 'are expected to fail against the core this adapter was built with'. They pass, carry no XCTExpectFailure, depend on a commit landing inside a page read, and waitForFirstPage can skip. A reader cannot tell whether core was fixed or the race simply did not happen.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-16",
+     "title": "The SQLite README host-wiring sample is not the code ReadmeSampleTests runs",
+     "category": "false-claim",
+     "spec_ref": "18.1 package 32 (host wiring sample)",
+     "locations": [
+      "Adapters/ZTronSearchEngineSQLite/README.md:49-81",
+      "Adapters/ZTronSearchEngineSQLite/Tests/ZTronSearchEngineSQLiteTests/ReadmeSampleTests.swift:6-7",
+      "Adapters/ZTronSearchEngineSQLite/Tests/ZTronSearchEngineSQLiteTests/ReadmeSampleTests.swift:96-101"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "The test's header says 'If this file has to change, so does the README'. The test uses BundleLocalizedStringResolver(bundles: [.main: strings]) and an explicit SearchEngineConfiguration (debounce 0, fixed locale). The README uses BundleLocalizedStringResolver() and SearchService(context:) with defaults. The printed sample is not the code that is compiled and run.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m05-adapters-17",
+     "title": "MLX README drift: 'absolute path' note and the unit-test count",
+     "category": "false-claim",
+     "spec_ref": "none (documentation)",
+     "locations": [
+      "Adapters/ZTronSearchEngineMLX/README.md:54-55",
+      "Adapters/ZTronSearchEngineMLX/README.md:251",
+      "Adapters/ZTronSearchEngineMLX/Package.swift:20-23"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "The README says 'Package.swift points at core with an absolute path. It becomes ../..', but it is already \"../..\". It also says '149 tests', while the unit-test files contain 150 test methods (Qwen3IntegrationTests excluded).",
+     "skeptic": "",
+     "repro": ""
+    }
+   ],
+   "not_checked": "The AssetKit adapter's scripted-client tests were not read line by line: AvailabilityTests, FetchTests, PlanAndLaneTests, PolicyTests, SharingAndEvictionTests, Support/MemoryOrigin and Support/ScriptedAssetClient. I only grepped them for test names and weak-assertion patterns. I read about half of RealClientTests. Of the MLX unit tests, I read four files in full (ExecutorAndCancellation, MLXLanguageModel, Qwen3Asset, Qwen3Integration); the rest (GenerationLoop, ThinkBlockFilter, SamplingPlan, Ch…"
+  },
+  {
+   "module": "m06-tests-gates",
+   "files_read": 48,
+   "lines_read": 12000,
+   "skeptic_ran": false,
+   "findings": [
+    {
+     "id": "C2-m06-tests-gates-01",
+     "title": "The non-scoped XCTExpectFailure in PerformanceTests.check(knownGap:) turns every later failure in the same test into an expected failure",
+     "category": "test-integrity",
+     "spec_ref": "15.1, 15.4 (locale rebuild 'never blocking a query'), 15.8, 16, 17 milestone 1 gate",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:70-87",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:80",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:323-327",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:533-535"
+     ],
+     "found_severity": "high",
+     "verdict": "unverified",
+     "severity": "high",
+     "summary": "When a measurement carrying a knownGap is over budget, check() calls XCTExpectFailure(knownGap) without a closure. That form matches every failure until the end of the test. Two checks with no knownGap are masked this way. (1) The scan-query budget at :535 is masked whenever the catalog-sized creation check at :534 is over budget. (2) XCTAssertLessThan(worstQuery, 0.25, \"a query never waits for the rebuild\") at :327 is masked whenever the rebuild is over budget, which it was in every run. The comment \"Recorded as an expected failure, strictly: the day it is met, this test says so\" is false. XC…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m06-tests-gates-02",
+     "title": "The 2 s locale-rebuild and 0.1 ms-per-document upsert targets are missed by the package's own measure and pass as expected failures; README and CI do not disclose it",
+     "category": "spec-deviation",
+     "spec_ref": "15.1 (full lexical rebuild on locale change 2 s; incremental upsert 0.1 ms amortized); 17 milestone 1 gate (lexical latency targets); 16",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:301-328",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:395-397",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:527-536",
+      "/Users/admin/Documents/ZTronSearchEngine/README.md:175-177"
+     ],
+     "found_severity": "high",
+     "verdict": "unverified",
+     "severity": "high",
+     "summary": "Three checks carry a knownGap, and an over-budget measurement becomes an expected failure. Rebuild measured 1134-2568 ms against 333 ms allowed (3.4-7.7x). Upsert of new documents measured 0.053-0.066 ms against 0.017 ms (3.2-4x). Upsert of replaced documents measured 0.083-0.146 ms (5-8.8x). The gap strings themselves say the reference device cannot meet these: \"is more work than the reference device does in 2 s by this estimate\" and \"the word tokenizer alone takes most of the budget\". README says \"The performance tests hold every measurement against its budget\", and the only unmet gate it di…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m06-tests-gates-03",
+     "title": "The 500 ms semantic-snapshot test holds the engine's share to an unscaled 20 ms; its own measured totals exceed 500 ms on this Mac and it passes anyway",
+     "category": "test-integrity",
+     "spec_ref": "15.1 (semantic snapshot after the typing pause: 500 ms p95 including the 300 ms debounce, reference device, 100k items)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:244-275",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:270",
+      "/Users/admin/Documents/ZTronSearchEngine/README.md:205-208"
+     ],
+     "found_severity": "high",
+     "verdict": "unverified",
+     "severity": "high",
+     "summary": "The test takes the total, subtracts the debounce and the measured encoder time (not the 180 ms budget), and compares the remainder with 20 ms of wall-clock time. It does not apply ReferenceDevice.scaled. README says off-device runs assert the budget divided by the slowdown, which is 6 on this Mac. The test also runs on 5,000 items with a brute-force fake searcher instead of 100k items with HNSW. It never asserts the total against 500 ms.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m06-tests-gates-04",
+     "title": "The cancellation tests time the consumer's own exit, which AsyncStream provides without the producer; none of them can fail if the producer ignores cancellation",
+     "category": "test-integrity",
+     "spec_ref": "15.4 (cancellation honoured within 10 ms of the next checkpoint); section 11 liveness table (cancellation tests before, during and after index search); SearchService.results doc (cancelling the consumer cancels the producer)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/ConcurrencyTests.swift:34-47",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/ConcurrencyTests.swift:49-80",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/ConcurrencyTests.swift:119-140",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchEngine/Service/SearchService.swift:278-296"
+     ],
+     "found_severity": "high",
+     "verdict": "unverified",
+     "severity": "high",
+     "summary": "results(for:) returns an AsyncStream. Each test cancels the Task that iterates the stream and times how long task.value takes to return. AsyncStream's iterator finishes the stream and returns nil as soon as the iterating task is cancelled, whatever the producer does. In testCancellationDuringTheIndexSearchIsHonouredAtTheNextCheckpoint, 'worst' is therefore the consumer's resume latency; its bound of 10 ms + full/4 is also looser than the spec's 10 ms. In testCancellingTheConsumerCancelsTheProducerThroughOnTermination, phases == [.lexical] and the 0.5 s bound both hold even with no onTerminatio…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m06-tests-gates-05",
+     "title": "The engine-level stale-snapshot test over 10,000 changes cannot detect the property its doc comment states",
+     "category": "test-integrity",
+     "spec_ref": "15.4 (zero stale snapshots over 10,000 randomized query changes); 16 (stale-result suppression with randomized query sequences)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/ConcurrencyTests.swift:157-221",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/ConcurrencyTests.swift:167-178"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "The doc comment promises that once a newer query has been issued, an older stream never yields again. The Ledger only compares each snapshot with its own stream's query and first generation. It records nothing about timing or order relative to newer queries. An old stream that yields its own late semantic snapshot after a newer query has been issued is therefore counted as correct. At the engine level, only testAnObsoleteProducerNeverYields checks suppression, over 60 iterations. The 10,000-change metric itself is covered at the UI boundary by ResultsModelTests.testNoStaleSnapshotsOverTenThous…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m06-tests-gates-06",
+     "title": "The release quality suites failed on this Mac in every run (RRF fusion and the 15.9 database targets), and the SQLite release targets failed too",
+     "category": "performance",
+     "spec_ref": "15.1 (RRF fusion 0.5 ms); 15.9 (10k-row context 1.5 s, 500-row page 40 ms, upsert of 100 rows 50 ms)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:173",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:590",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:616",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:638"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "Release PerformanceTests failed 6 checks in the first run (load average 370) and 4 in the rerun (load average 8.4, 12 simulators booted). In the rerun: testDatabaseSources creation 314.3 ms against 250 ms (1379 ms in run 1); page 7.07 ms against 6.67 ms; upsert 13.76 ms against 8.33 ms; fusion 0.110 ms against 0.083 ms (0.161 ms in run 1). The SQLite release run failed upsert at 10.154 ms against 8.333 ms. By the README's own rule that passing off the device is necessary, these targets are not shown to be met. The margins (1.06-1.9x) may be partly due to machine load, so this is plausible rath…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m06-tests-gates-07",
+     "title": "The filter/kind precision gate and the hard-constraint test pass when the engine returns nothing",
+     "category": "test-integrity",
+     "spec_ref": "15.3 (filter and kind tokens: precision 1.0); 16 (filters and kind tokens as hard constraints)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchFixtures/RelevanceMetrics.swift:67-72",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/GoldenGates.swift:38-39",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/RelevanceTests.swift:185",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/RelevanceTests.swift:196"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "precision returns 1 for an empty list, and RelevanceMetricsTests:77 asserts it ('no hit violates anything'). The filterAndKind class is gated on precision alone. testNoHitEverViolatesAHardConstraint counts violations only among the hits returned. Nothing requires these queries to return their judged items, even though the golden set holds those judgments. Only the first page of the final snapshot is checked.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m06-tests-gates-08",
+     "title": "'Relevance gates among 100,000 distractors' adds no competition: distractors are built never to match a golden query, and the numbers are identical at 5,000 and 100,000",
+     "category": "false-claim",
+     "spec_ref": "15.3; section 15 preamble (100k items)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchFixtures/SyntheticCorpus.swift:14-23",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchFixtures/SyntheticVocabulary.swift:53",
+      "/Users/admin/Documents/ZTronSearchEngine/README.md:179-180",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/RelevanceTests.swift:43-46"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "The fixtures are built so that distractors never compete. Titles and keywords are pseudo-words. No pseudo-word shares its first three letters with a lexicon word. Lemmas appear only after the 24th word of a body. Synonyms and reserved translations never appear. A distractor therefore cannot take a head position through title, prefix, keyword, paraphrase, translation or embedding. Near-miss competitors are absent: shared prefixes, typo neighbours, titles that share words. The CI's 100k relevance run exercises scale only, not relevance under competition.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m06-tests-gates-09",
+     "title": "Several 15.1 and 15.2 targets that need no model have no assertion; the one steady-state measurement exceeds 110 MB and is gated at 200 MB",
+     "category": "spec-missing",
+     "spec_ref": "15.1 (final snapshot past the calibration gate 750 ms; no frame over 16.7 ms attributable to search); 15.2 (steady state with models unloaded 110 MB; semantic peak 200 MB); 16 (resident memory assertions from 15.2; 100k-item indexing time)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchFixtures/ReferenceDevice.swift:67",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:402-438",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:455-463",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:678-689"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "No test uses PerformanceBudget.rerankedSnapshot, and none checks steady-state or peak memory. testIndexingKeepsItsWorkingMemoryInBounds measures the heap retained after indexing 100k items in memory, says 'Not a target of section 15', and asserts only < 200 MB. testLexicalIndexMemory measures only a freshly memory-mapped index, not the in-memory index a host has after index(_:). It also excludes two things: the stored-document section (29.6 MB paged in after the golden set) and any heap allocated by load, because heapBefore is taken after load (:412-413). The indexing baseline uses 10k items, …",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m06-tests-gates-10",
+     "title": "CI never runs the SQLite adapter's release DatabaseTargetsTests, and run here it fails the upsert target",
+     "category": "spec-missing",
+     "spec_ref": "15.9; 17 milestone 2 gate (adapter integration tests and the 15.9 targets)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/.github/workflows/adapter-tests.yml:56-63",
+      "/Users/admin/Documents/ZTronSearchEngine/README.md:188-191",
+      "/Users/admin/Documents/ZTronSearchEngine/Adapters/ZTronSearchEngineSQLite/Tests/ZTronSearchEngineSQLiteTests/DatabaseTargetsTests.swift:70",
+      "/Users/admin/Documents/ZTronSearchEngine/Adapters/ZTronSearchEngineSQLite/Tests/ZTronSearchEngineSQLiteTests/DatabaseTargetsTests.swift:179"
+     ],
+     "found_severity": "medium",
+     "verdict": "unverified",
+     "severity": "medium",
+     "summary": "The adapter workflow runs swift test and swift test --sanitize=thread, both debug builds. In debug, DatabaseTargetsTests throws XCTSkip. No job runs it in release. README:188-191 presents that release command as the place where the adapter 'asserts the section 15.9 targets against a real database'.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m06-tests-gates-11",
+     "title": "The semantic, cross-language and rerank gates are reached only with oracle fakes built from the queries' own lexicon; the rerank stage changes no metric, so 'never below fused' holds by equality",
+     "category": "test-integrity",
+     "spec_ref": "15.3 (paraphrase recall 0.75, cross-language recall 0.70, reranked NDCG 0.85 and never below fused)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchFixtures/FakeEmbeddingProvider.swift",
+      "/Users/admin/Documents/ZTronSearchEngine/Sources/ZTronSearchFixtures/FakeReranker.swift",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/RelevanceTests.swift:217-224",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/RelevanceTests.swift:265-281"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "The fake embedding maps the lexicon's concepts (synonyms and translations) to orthonormal vectors. The fake reranker scores concept overlap. The queries are generated from the same lexicon, so the jump from 0.0000 at the lexical stage to 0.9875/1.0000 at the semantic stage is built in. In every log, every reranked number equals the semantic one. testRerankedHeadNDCG would pass if the rerank stage returned the fused order unchanged, and testTheFinalSnapshotIsTheOneTheStageAsksFor checks only the phase label. README discloses that the fakes say nothing about a production model, hence low. A stub…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m06-tests-gates-12",
+     "title": "The 'timeout-guarded' deadlock test cannot time out, because withTaskGroup waits for the hung child",
+     "category": "test-integrity",
+     "spec_ref": "Section 11 liveness table (no deadlock: Thread Sanitizer in CI; timeout-guarded tests)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/ConcurrencyTests.swift:19-30",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/ConcurrencyTests.swift:248-296"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "When the timer child returns nil, the closure calls cancelAll, but withTaskGroup still awaits all of its children. A deadlocked operation, or one with a lost continuation, never completes. withTimeout therefore never returns, and XCTAssertEqual(finished, true, '... no deadlock, no lost continuation') is never reached. Only the CI job timeout (45 or 90 minutes) ends the run.",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m06-tests-gates-13",
+     "title": "Several bounded-work and context tests check proxies that cannot fail for the property they name",
+     "category": "test-integrity",
+     "spec_ref": "Sections 10 and 11 (bounded work: 2,000 candidates); 16 (no disk I/O for a context; no growth over 1,000 create-and-release cycles); 15.1 (cold start)",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/ConcurrencyTests.swift:328-348",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:143",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:279-299",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/SearchContextTests.swift:294-309"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "(a) In testAtMostTwoThousandLexicalCandidatesAreScored, the first two assertions hold with no candidate cap at all: there is a 200-entry fusion cap, and the 2,000 title matches outrank body-only matches regardless. Only the sub-check with a limit of 50 exercises the cap. PerformanceTests:143 asserts candidates <= 2_000 by reading the engine's own slotCount, which is bounded by construction by the configured limit, so it only checks the configuration default. (b) testAScanContextPerformsNoDiskIO asserts only that the storage directory was not created, so it cannot detect reads. (c) testCreating…",
+     "skeptic": "",
+     "repro": ""
+    },
+    {
+     "id": "C2-m06-tests-gates-14",
+     "title": "README and CI comments the configuration does not keep",
+     "category": "false-claim",
+     "spec_ref": "16 (performance tests record baselines on the reference device); CI documentation",
+     "locations": [
+      "/Users/admin/Documents/ZTronSearchEngine/README.md:209-210",
+      "/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:57-61",
+      "/Users/admin/Documents/ZTronSearchEngine/.github/workflows/ci.yml:64-67",
+      "/Users/admin/Documents/ZTronSearchEngine/.github/workflows/parity.yml:67"
+     ],
+     "found_severity": "low",
+     "verdict": "unverified",
+     "severity": "low",
+     "summary": "(a) README says PerformanceTests 'carries XCTClockMetric and XCTMemoryMetric baselines to record there', meaning on the device. But setUpWithError skips the whole class in DEBUG, which is Xcode's default test configuration for a device run, and nothing explains how to run a Release build with testability on the device. (b) ci.yml calls ['15.5', '18.6'] 'The floor and the current release', while parity.yml and ParityHost/ReferenceSnapshots already use iOS 27.0. (c) The 'strictly: the day it is met' comment is covered in finding 01.",
+     "skeptic": "",
+     "repro": ""
+    }
+   ],
+   "not_checked": "Not read:\n- Fixtures: FakeChatBoundaries, CatalogSchema, FixtureLexicon, FixtureLexiconData, GoldenPhrases.\n- Fixture tests: GoldenCorpusTests, FakeEmbeddingTests, LexiconTests.\n- Engine test suites: ChatTests, CoreCorrectnessTests, FuzzyChannelTests, HighlighterTests, IndexMaintenanceTests, RankingTests, SmokeTests, TextPipelineTests. DatabaseSourceTests was only grepped.\n\nNot determined:\n- Whether GitHub's macos-latest image has the iOS 15.5 simulator runtime that the ios job requests.\n- Wheth…"
+  }
+ ],
+ "missingModules": []
+}

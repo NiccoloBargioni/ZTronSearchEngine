@@ -1,0 +1,199 @@
+START 2026-11-17 17:25:58
+CMD: swift test -c release -Xswiftc -enable-testing --scratch-path .build-release --filter PerformanceTests
+LOAD: 17:25  up 3 days,  7:06, 2 users, load averages: 370.87 116.46 57.83
+BOOTED SIMULATORS: 12
+Building for production...
+[Computing dependencies]
+[Provisioning 1 / 13]
+[Constructing description]
+[Pre-planning 1 / 356]
+[Planning deferred tasks]
+[53 / 176] ZTronSearchEngineSemanticTests-product
+[81 / 176]
+[89 / 176] ZTronSearchEngine_ZTronSearchEngineUI
+[93 / 176]
+[94 / 177] ZTronSearchEngine
+[104 / 224]
+[105 / 224]
+[107 / 224]
+[111 / 224]
+[115 / 224]
+[117 / 224]
+[118 / 224]
+[121 / 224]
+[122 / 224]
+[123 / 224]
+[124 / 224]
+[125 / 224]
+[127 / 224]
+[131 / 224]
+[133 / 224]
+[134 / 224]
+[135 / 224]
+[137 / 224]
+[139 / 224]
+[140 / 224]
+[141 / 224]
+[142 / 224] ZTronSearchEngine
+[152 / 226] ZTronSearchEngineUI
+[154 / 227] ZTronSearchEngine-product
+[154 / 227] ZTronSearchFixtures
+[159 / 232]
+[160 / 232]
+[169 / 253]
+[172 / 253]
+[174 / 253]
+[177 / 253]
+[179 / 253]
+[181 / 253]
+[182 / 253]
+[183 / 253] ZTronSearchEngineUI
+[189 / 253] ZTronSearchEngineUI-product
+[189 / 253]
+[189 / 253] ZTronSearchEngineUI
+[190 / 253] ZTronSearchEngineUI-product
+[190 / 253] ZTronSearchEngineSemantic
+[197 / 253] ZTronSearchFixtures
+[203 / 253] ZTronSearchFixtures
+[216 / 257] ZTronSearchEngineUITests-product
+[222 / 266]
+[224 / 266]
+[225 / 266]
+[229 / 266] ZTronSearchEngineUITests-product
+[234 / 266] ZTronSearchEngineUITests-product
+[236 / 266] ZTronSearchEngineUITests-product
+[238 / 266] ZTronSearchFixturesTests-product
+[243 / 266] ZTronSearchFixturesTests-product
+[245 / 266] ZTronSearchEngineSemanticTests-product
+[252 / 266] ZTronSearchEngineSemanticTests-product
+[254 / 266] ZTronSearchEngineSemanticTests-product
+[256 / 266] ZTronSearchEngineTests-product
+[261 / 266] ZTronSearchEngineTests-product
+[263 / 266] ZTronSearchEngineTests-product
+Build complete! (175,74 s)
+Test Suite 'Selected tests' started at 2026-11-17 17:29:03.338.
+Test Suite 'ZTronSearchFixturesTests.xctest' started at 2026-11-17 17:29:03.341.
+Test Suite 'ZTronSearchFixturesTests.xctest' passed at 2026-11-17 17:29:03.341.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-17 17:29:03.341.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.003) seconds
+Test Suite 'Selected tests' started at 2026-11-17 17:29:03.477.
+Test Suite 'ZTronSearchEngineUITests.xctest' started at 2026-11-17 17:29:03.478.
+Test Suite 'ZTronSearchEngineUITests.xctest' passed at 2026-11-17 17:29:03.478.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-17 17:29:03.478.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'Selected tests' started at 2026-11-17 17:29:03.610.
+Test Suite 'ZTronSearchEngineTests.xctest' started at 2026-11-17 17:29:03.611.
+Test Suite 'PerformanceTests' started at 2026-11-17 17:29:03.611.
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testBaselineIndexingTenThousandItems]' started.
+/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:680: Test Case '-[ZTronSearchEngineTests.PerformanceTests testBaselineIndexingTenThousandItems]' measured [Memory Peak Physical, kB] average: 170401.162, relative standard deviation: 1.785%, values: [164529.136000, 170361.840000, 172082.160000, 172508.144000, 172524.528000], performanceMetricID:com.apple.dt.XCTMetric_Memory.physical_peak, baselineName: "", baselineAverage: , polarity: prefers smaller, maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.000, maxStandardDeviation: 0.000
+/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:680: Test Case '-[ZTronSearchEngineTests.PerformanceTests testBaselineIndexingTenThousandItems]' measured [Memory Physical, kB] average: 4643.226, relative standard deviation: 122.928%, values: [15286.272000, 5832.704000, 1687.552000, 393.216000, 16.384000], performanceMetricID:com.apple.dt.XCTMetric_Memory.physical, baselineName: "", baselineAverage: , polarity: prefers smaller, maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.000, maxStandardDeviation: 0.000
+/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:680: Test Case '-[ZTronSearchEngineTests.PerformanceTests testBaselineIndexingTenThousandItems]' measured [Clock Monotonic Time, s] average: 0.736, relative standard deviation: 32.994%, values: [0.556598, 0.535991, 0.662422, 1.202184, 0.724239], performanceMetricID:com.apple.dt.XCTMetric_Clock.time.monotonic, baselineName: "", baselineAverage: , polarity: prefers smaller, maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.000, maxStandardDeviation: 0.000
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testBaselineIndexingTenThousandItems]' passed (5.783 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testBaselineLexicalQuery]' started.
+/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:666: Test Case '-[ZTronSearchEngineTests.PerformanceTests testBaselineLexicalQuery]' measured [Memory Peak Physical, kB] average: 740771.448, relative standard deviation: 0.000%, values: [740771.448000, 740771.448000, 740771.448000, 740771.448000, 740771.448000], performanceMetricID:com.apple.dt.XCTMetric_Memory.physical_peak, baselineName: "", baselineAverage: , polarity: prefers smaller, maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.000, maxStandardDeviation: 0.000
+/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:666: Test Case '-[ZTronSearchEngineTests.PerformanceTests testBaselineLexicalQuery]' measured [Memory Physical, kB] average: 3.277, relative standard deviation: 200.000%, values: [16.384000, 0.000000, 0.000000, 0.000000, 0.000000], performanceMetricID:com.apple.dt.XCTMetric_Memory.physical, baselineName: "", baselineAverage: , polarity: prefers smaller, maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.000, maxStandardDeviation: 0.000
+/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:666: Test Case '-[ZTronSearchEngineTests.PerformanceTests testBaselineLexicalQuery]' measured [Clock Monotonic Time, s] average: 0.234, relative standard deviation: 16.655%, values: [0.217840, 0.311793, 0.214200, 0.217368, 0.209147], performanceMetricID:com.apple.dt.XCTMetric_Clock.time.monotonic, baselineName: "", baselineAverage: , polarity: prefers smaller, maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.000, maxStandardDeviation: 0.000
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testBaselineLexicalQuery]' passed (6.921 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testColdStartFromAMemoryMappedIndex]' started.
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testColdStartFromAMemoryMappedIndex]' passed (0.577 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testDatabaseSources]' started.
+/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:590: error: -[ZTronSearchEngineTests.PerformanceTests testDatabaseSources] : XCTAssertLessThanOrEqual failed: ("1.379371667") is greater than ("0.25") - context creation from 10k rows, 3 string fields, 2 languages: 1379.372 ms, budget 1500.000 ms on the reference device (250.000 ms on this machine)
+/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:616: error: -[ZTronSearchEngineTests.PerformanceTests testDatabaseSources] : XCTAssertLessThanOrEqual failed: ("0.009163625") is greater than ("0.006666666666666667") - one page: read, resolve and project 500 rows (p95): 9.164 ms, budget 40.000 ms on the reference device (6.667 ms on this machine)
+/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:638: error: -[ZTronSearchEngineTests.PerformanceTests testDatabaseSources] : XCTAssertLessThanOrEqual failed: ("0.021162666") is greater than ("0.008333333333333333") - incremental upsert of 100 changed rows, after the commit (p95): 21.163 ms, budget 50.000 ms on the reference device (8.333 ms on this machine)
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testDatabaseSources]' failed (3.711 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testEachSecondaryLanguageAddsToTheIndex]' started.
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testEachSecondaryLanguageAddsToTheIndex]' passed (4.634 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testFirstLexicalSnapshot]' started.
+/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:196: error: -[ZTronSearchEngineTests.PerformanceTests testFirstLexicalSnapshot] : XCTAssertLessThanOrEqual failed: ("0.002167709") is greater than ("0.002") - first lexical snapshot, debounce fire to published (p95): 2.168 ms, budget 12.000 ms on the reference device (2.000 ms on this machine)
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testFirstLexicalSnapshot]' failed (1.322 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testFullLexicalRebuildOnLocaleChange]' started.
+XCTExpectFailure: matcher accepted Assertion Failure at PerformanceTests.swift:323: XCTAssertLessThanOrEqual failed: ("2.567530125") is greater than ("0.3333333333333333") - lexical rebuild on locale change, 100k items (worst of 2): 2567.530 ms, budget 2000.000 ms on the reference device (333.333 ms on this machine)
+PerformanceTests.swift:323: Expected failure in -[ZTronSearchEngineTests.PerformanceTests testFullLexicalRebuildOnLocaleChange]: XCTAssertLessThanOrEqual failed: ("2.567530125") is greater than ("0.3333333333333333") - lexical rebuild on locale change, 100k items (worst of 2): 2567.530 ms, budget 2000.000 ms on the reference device (333.333 ms on this machine)Reason: (re-indexing the items that carry localizations (a fifth of this corpus, 57 words each) is more work than the reference device does in 2 s by this estimate: the word tokenizer alone takes a third of it, and that device has two cores to spread it over)
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testFullLexicalRebuildOnLocaleChange]' passed (7.668 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testFusionOfThreeChannelsOfTwoHundredEntries]' started.
+/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:173: error: -[ZTronSearchEngineTests.PerformanceTests testFusionOfThreeChannelsOfTwoHundredEntries] : XCTAssertLessThanOrEqual failed: ("0.000161208") is greater than ("8.333333333333333e-05") - RRF fusion, 3 channels x 200 entries (p95): 0.161 ms, budget 0.500 ms on the reference device (0.083 ms on this machine)
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testFusionOfThreeChannelsOfTwoHundredEntries]' failed (0.095 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testIncrementalUpsert]' started.
+XCTExpectFailure: matcher accepted Assertion Failure at PerformanceTests.swift:396: XCTAssertLessThanOrEqual failed: ("6.6050083e-05") is greater than ("1.6666666666666667e-05") - incremental upsert, new documents, batches of 100 (per document): 0.066 ms, budget 0.100 ms on the reference device (0.017 ms on this machine)
+XCTExpectFailure: matcher accepted Assertion Failure at PerformanceTests.swift:397: XCTAssertLessThanOrEqual failed: ("0.00014625368750000001") is greater than ("1.6666666666666667e-05") - incremental upsert, replaced documents, batches of 100 (per document): 0.146 ms, budget 0.100 ms on the reference device (0.017 ms on this machine)
+PerformanceTests.swift:396: Expected failure in -[ZTronSearchEngineTests.PerformanceTests testIncrementalUpsert]: XCTAssertLessThanOrEqual failed: ("6.6050083e-05") is greater than ("1.6666666666666667e-05") - incremental upsert, new documents, batches of 100 (per document): 0.066 ms, budget 0.100 ms on the reference device (0.017 ms on this machine)Reason: (for documents of this length the word tokenizer alone takes most of the budget by this estimate; normalizing and interning the words and building each batch's segment take the rest of the time)
+PerformanceTests.swift:397: Expected failure in -[ZTronSearchEngineTests.PerformanceTests testIncrementalUpsert]: XCTAssertLessThanOrEqual failed: ("0.00014625368750000001") is greater than ("1.6666666666666667e-05") - incremental upsert, replaced documents, batches of 100 (per document): 0.146 ms, budget 0.100 ms on the reference device (0.017 ms on this machine)Reason: (for documents of this length the word tokenizer alone takes most of the budget by this estimate; normalizing and interning the words and building each batch's segment take the rest of the time)
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testIncrementalUpsert]' passed (5.246 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testIndexingKeepsItsWorkingMemoryInBounds]' started.
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testIndexingKeepsItsWorkingMemoryInBounds]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testLexicalIndexMemory]' started.
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testLexicalIndexMemory]' passed (0.589 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testLexicalStages]' started.
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testLexicalStages]' passed (0.791 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testNextPageOfTwentyHits]' started.
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testNextPageOfTwentyHits]' passed (0.462 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testQueryTokenizationAndNormalization]' started.
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testQueryTokenizationAndNormalization]' passed (0.008 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testSemanticSnapshotAfterTheTypingPause]' started.
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testSemanticSnapshotAfterTheTypingPause]' passed (6.221 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testSmallContexts]' started.
+/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineTests/PerformanceTests.swift:518: error: -[ZTronSearchEngineTests.PerformanceTests testSmallContexts] : XCTAssertLessThanOrEqual failed: ("0.001761916") is greater than ("0.0008333333333333334") - scan context creation, 40 documents (p95): 1.762 ms, budget 5.000 ms on the reference device (0.833 ms on this machine)
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testSmallContexts]' failed (0.872 seconds).
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testSmallContextsOfCatalogSizedDocuments]' started.
+XCTExpectFailure: matcher accepted Assertion Failure at PerformanceTests.swift:534: XCTAssertLessThanOrEqual failed: ("0.046581875") is greater than ("0.008333333333333333") - scan context creation, 500 catalog-sized documents (p95): 46.582 ms, budget 50.000 ms on the reference device (8.333 ms on this machine)
+PerformanceTests.swift:534: Expected failure in -[ZTronSearchEngineTests.PerformanceTests testSmallContextsOfCatalogSizedDocuments]: XCTAssertLessThanOrEqual failed: ("0.046581875") is greater than ("0.008333333333333333") - scan context creation, 500 catalog-sized documents (p95): 46.582 ms, budget 50.000 ms on the reference device (8.333 ms on this machine)Reason: (creating a scan context tokenizes every document; 500 documents of catalog size are at the limit of 50 ms on the reference device by this estimate)
+XCTExpectFailure: matcher accepted Assertion Failure at PerformanceTests.swift:535: XCTAssertLessThanOrEqual failed: ("0.000897959") is greater than ("0.0005") - scan query, 500 catalog-sized documents (p95): 0.898 ms, budget 3.000 ms on the reference device (0.500 ms on this machine)
+PerformanceTests.swift:535: Expected failure in -[ZTronSearchEngineTests.PerformanceTests testSmallContextsOfCatalogSizedDocuments]: XCTAssertLessThanOrEqual failed: ("0.000897959") is greater than ("0.0005") - scan query, 500 catalog-sized documents (p95): 0.898 ms, budget 3.000 ms on the reference device (0.500 ms on this machine)Reason: (creating a scan context tokenizes every document; 500 documents of catalog size are at the limit of 50 ms on the reference device by this estimate)
+Test Case '-[ZTronSearchEngineTests.PerformanceTests testSmallContextsOfCatalogSizedDocuments]' passed (1.364 seconds).
+Test Suite 'PerformanceTests' failed at 2026-11-17 17:29:49.878.
+	 Executed 17 tests, with 6 failures (0 unexpected) in 46.264 (46.267) seconds
+Test Suite 'ZTronSearchEngineTests.xctest' failed at 2026-11-17 17:29:49.878.
+	 Executed 17 tests, with 6 failures (0 unexpected) in 46.264 (46.267) seconds
+Test Suite 'Selected tests' failed at 2026-11-17 17:29:49.878.
+	 Executed 17 tests, with 6 failures (0 unexpected) in 46.264 (46.269) seconds
+PERF cold start to search-ready, memory-mapped index, first query included (worst of 8): 8.005 ms measured; budget 250.000 ms on the reference device, 41.667 ms here (within)
+PERF context creation from 10k rows, 3 string fields, 2 languages: 1379.372 ms measured; budget 1500.000 ms on the reference device, 250.000 ms here (OVER)
+PERF resident memory of a 10k-row context, projection plus index: 4.6 MB measured; budget 6.0 MB (within)
+PERF one page of 500 rows: the fake's read takes 1.003 ms of 6.800 ms (p50)
+PERF one page: read, resolve and project 500 rows (p95): 9.164 ms measured; budget 40.000 ms on the reference device, 6.667 ms here (OVER)
+PERF incremental upsert of 100 changed rows: p50 12.155 ms, worst of 40 25.079 ms
+PERF incremental upsert of 100 changed rows, after the commit (p95): 21.163 ms measured; budget 50.000 ms on the reference device, 8.333 ms here (OVER)
+PERF index round trip inside the host database, 10k documents: write: 9.513 ms measured; budget 400.000 ms on the reference device, 66.667 ms here (within)
+PERF index round trip inside the host database, 10k documents: load: 1.343 ms measured; budget 250.000 ms on the reference device, 41.667 ms here (within)
+PERF one additional secondary language: 4.0 MB measured; budget 10.0 MB (within)
+PERF first lexical snapshot p50: 0.936 ms
+PERF first lexical snapshot, debounce fire to published (p95): 2.168 ms measured; budget 12.000 ms on the reference device, 2.000 ms here (OVER)
+PERF locale change: 20445 of 100420 items carry localizations; slowest query during the rebuilds 182.033 ms
+PERF lexical rebuild on locale change, 100k items (worst of 2): 2567.530 ms measured; budget 2000.000 ms on the reference device, 333.333 ms here (OVER)
+PERF RRF fusion, 3 channels x 200 entries (p95): 0.161 ms measured; budget 0.500 ms on the reference device, 0.083 ms here (OVER)
+PERF one call upserting 100 documents: p50 10.490 ms, p95 21.360 ms; the documents are searchable when it returns
+PERF upsert of an unchanged document: 0.007 ms per document
+PERF of which NLTokenizer alone, on the same new documents: 0.018 ms per document of 57 words; budget 0.017 ms here
+PERF incremental upsert, new documents, batches of 100 (per document): 0.066 ms measured; budget 0.100 ms on the reference device, 0.017 ms here (OVER)
+PERF incremental upsert, replaced documents, batches of 100 (per document): 0.146 ms measured; budget 0.100 ms on the reference device, 0.017 ms here (OVER)
+PERF indexing 100000 items: 3.90 s; heap retained afterwards 125.4 MB (the in-memory segment and the items kept for a locale change)
+PERF index file 88.2 MB for 100420 items: index 41.6 MB (of which term lists for deletions 10.4 MB), stored documents 46.6 MB
+PERF after the 353 queries of the golden set: 29.6 MB of the stored documents paged in for their hits; 3.4 MB of scratch on the heap
+PERF lexical index, 100k documents: resident after the golden set (mapped pages touched, plus scratch): 24.4 MB measured; budget 40.0 MB (within)
+PERF prefix lexical lookup (p95): 0.017 ms measured; budget 3.000 ms on the reference device, 0.500 ms here (within)
+PERF BM25F scoring, 2,000 candidates or fewer (p95): 0.195 ms measured; budget 3.000 ms on the reference device, 0.500 ms here (within)
+PERF fuzzy expansion, 8 candidates per token (p95): 0.938 ms measured; budget 6.000 ms on the reference device, 1.000 ms here (within)
+PERF next page of 20 hits (p95): 0.341 ms measured; budget 8.000 ms on the reference device, 1.333 ms here (within)
+PERF tokenization and normalization, query of 64 characters or fewer (p95): 0.007 ms measured; budget 0.300 ms on the reference device, 0.050 ms here (within)
+PERF semantic snapshot after the typing pause: worst 502.036 ms in all; the engine adds at most 12.736 ms to the 300 ms debounce and the encoder (allowance 20.000 ms)
+PERF scan context creation, 40 documents (p95): 1.762 ms measured; budget 5.000 ms on the reference device, 0.833 ms here (OVER)
+PERF scan query, 40 documents (p95): 0.049 ms measured; budget 0.500 ms on the reference device, 0.083 ms here (within)
+PERF scan context memory, 40 documents: 0.0 MB measured; budget 0.1 MB (within)
+PERF scan context creation, 500 documents (p95): 8.167 ms measured; budget 50.000 ms on the reference device, 8.333 ms here (within)
+PERF scan query, 500 documents (p95): 0.158 ms measured; budget 3.000 ms on the reference device, 0.500 ms here (within)
+PERF scan context memory, 500 documents: 0.4 MB measured; budget 1.0 MB (within)
+PERF scan context creation, 500 catalog-sized documents (p95): 46.582 ms measured; budget 50.000 ms on the reference device, 8.333 ms here (OVER)
+PERF scan query, 500 catalog-sized documents (p95): 0.898 ms measured; budget 3.000 ms on the reference device, 0.500 ms here (OVER)
+PERF scan context memory, 500 catalog-sized documents: 0.7 MB (the 1 MB budget is for small entries)
+Test Suite 'Selected tests' started at 2026-11-17 17:29:50.011.
+Test Suite 'ZTronSearchEngineSemanticTests.xctest' started at 2026-11-17 17:29:50.012.
+Test Suite 'ZTronSearchEngineSemanticTests.xctest' passed at 2026-11-17 17:29:50.012.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-17 17:29:50.012.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Note: Some test targets reported failures:
+  - ZTronSearchEngineTests (XCTest)
+EXIT: 1
+END 2026-11-17 17:29:50

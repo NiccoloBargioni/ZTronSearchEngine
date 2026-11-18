@@ -1,0 +1,430 @@
+START 2026-11-17 17:40:48
+CMD: env ZTRON_SEMANTIC_LARGE=1 swift test -c release -Xswiftc -enable-testing --scratch-path .build-release --filter ZTronSearchEngineSemanticTests
+LOAD: 17:40  up 3 days,  7:21, 2 users, load averages: 9.93 68.21 104.67
+BOOTED SIMULATORS: 12
+Building for production...
+[Provisioning 7 / 13]
+[1 / 3] ZTronSearchEngineUI
+Build complete! (0,37 s)
+Test Suite 'Selected tests' started at 2026-11-17 17:40:50.694.
+Test Suite 'ZTronSearchFixturesTests.xctest' started at 2026-11-17 17:40:50.694.
+Test Suite 'ZTronSearchFixturesTests.xctest' passed at 2026-11-17 17:40:50.694.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-17 17:40:50.694.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'Selected tests' started at 2026-11-17 17:40:50.790.
+Test Suite 'ZTronSearchEngineUITests.xctest' started at 2026-11-17 17:40:50.791.
+Test Suite 'ZTronSearchEngineUITests.xctest' passed at 2026-11-17 17:40:50.791.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-17 17:40:50.791.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'Selected tests' started at 2026-11-17 17:40:50.885.
+Test Suite 'ZTronSearchEngineTests.xctest' started at 2026-11-17 17:40:50.886.
+Test Suite 'ZTronSearchEngineTests.xctest' passed at 2026-11-17 17:40:50.886.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-17 17:40:50.886.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'Selected tests' started at 2026-11-17 17:40:50.955.
+Test Suite 'ZTronSearchEngineSemanticTests.xctest' started at 2026-11-17 17:40:50.956.
+Test Suite 'CoreMLAdapterTests' started at 2026-11-17 17:40:50.956.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testAModelOfAnotherWidthOrWithABrokenOutputIsRefused]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testAModelOfAnotherWidthOrWithABrokenOutputIsRefused]' passed (0.006 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testAModelOverItsBudgetIsRefusedBeforeAnythingIsLoaded]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testAModelOverItsBudgetIsRefusedBeforeAnythingIsLoaded]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testAnOutputThatDoesNotMatchThePairsIsRefused]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testAnOutputThatDoesNotMatchThePairsIsRefused]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testAPooledOutputIsOnlyNormalizedAndTheFirstTokenCanBeAskedFor]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testAPooledOutputIsOnlyNormalizedAndTheFirstTokenCanBeAskedFor]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testComputeUnitsMapOntoCoreML]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testComputeUnitsMapOntoCoreML]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testEachPairIsTruncatedToTheWindowWithTheQueryIntact]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testEachPairIsTruncatedToTheWindowWithTheQueryIntact]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testEncodingOnACancelledTaskDoesNotLoadTheModel]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testEncodingOnACancelledTaskDoesNotLoadTheModel]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testEncodingTokenizesPoolsUnderTheMaskAndNormalizes]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testEncodingTokenizesPoolsUnderTheMaskAndNormalizes]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testEveryPairIsScoredInOneBatchedCall]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testEveryPairIsScoredInOneBatchedCall]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testItIsAnEmbeddingProviderForTheSemanticIndex]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testItIsAnEmbeddingProviderForTheSemanticIndex]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testLoadingAndPredictionRunOnTheAdaptersOwnQueueNotTheCooperativePool]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testLoadingAndPredictionRunOnTheAdaptersOwnQueueNotTheCooperativePool]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testNoPassagesMeansNoScoresAndNoModel]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testNoPassagesMeansNoScoresAndNoModel]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testOnItsOwnTheCrossEncoderIsNeverEnabledUnderAuto]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testOnItsOwnTheCrossEncoderIsNeverEnabledUnderAuto]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testTheBudgetIsCheckedAgainstTheFilesOnDisk]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testTheBudgetIsCheckedAgainstTheFilesOnDisk]' passed (0.010 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testTheCrossEncoderLoadsLazilyUnloadsAndRefusesAModelOverBudget]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testTheCrossEncoderLoadsLazilyUnloadsAndRefusesAModelOverBudget]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testTheModelLoadsLazilyAndReloadsAfterUnload]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testTheModelLoadsLazilyAndReloadsAfterUnload]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testTheQueryPrefixIsEncodedWithTheQuery]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testTheQueryPrefixIsEncodedWithTheQuery]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testTheTokenizerIsKeptOrReleasedWithTheModelAsConfigured]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testTheTokenizerIsKeptOrReleasedWithTheModelAsConfigured]' passed (0.003 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testTwoLogitModelsAreScoredByTheirMargin]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.CoreMLAdapterTests testTwoLogitModelsAreScoredByTheirMargin]' passed (0.000 seconds).
+Test Suite 'CoreMLAdapterTests' passed at 2026-11-17 17:40:50.985.
+	 Executed 19 tests, with 0 failures (0 unexpected) in 0.028 (0.029) seconds
+Test Suite 'HNSWIndexTests' started at 2026-11-17 17:40:50.985.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testAGraphBuiltOverAStoreWithTombstonesKeepsThemTombstoned]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testAGraphBuiltOverAStoreWithTombstonesKeepsThemTombstoned]' passed (0.026 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testAGraphFileOfAnotherStoreIsRefused]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testAGraphFileOfAnotherStoreIsRefused]' passed (0.011 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testAGraphWrittenAloneAttachesToItsStore]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testAGraphWrittenAloneAttachesToItsStore]' passed (0.014 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testALinkToANodeThatDoesNotExistFailsTheSearchInsteadOfReadingOutOfBounds]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testALinkToANodeThatDoesNotExistFailsTheSearchInsteadOfReadingOutOfBounds]' passed (0.007 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testASearchOnACancelledTaskThrowsAtOnce]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testASearchOnACancelledTaskThrowsAtOnce]' passed (0.084 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testAStoredVectorIsItsOwnNearestNeighbour]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testAStoredVectorIsItsOwnNearestNeighbour]' passed (0.056 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testAWiderSearchNeverFindsLess]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testAWiderSearchNeverFindsLess]' passed (0.147 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testBulkInsertionIsAllOrNothingOnInvalidInput]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testBulkInsertionIsAllOrNothingOnInvalidInput]' passed (0.003 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testCancellingABuildStopsItBetweenTwoInsertions]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testCancellingABuildStopsItBetweenTwoInsertions]' passed (0.044 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testCompactionDropsTombstonesAndKeepsTheAnswers]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testCompactionDropsTombstonesAndKeepsTheAnswers]' passed (0.088 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testConfigurationIsClampedToItsRanges]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testConfigurationIsClampedToItsRanges]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testDamagedGraphFilesAreRefusedWithoutTrapping]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testDamagedGraphFilesAreRefusedWithoutTrapping]' passed (0.026 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testKeepingPrunedConnectionsBuildsADenserValidGraph]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testKeepingPrunedConnectionsBuildsADenserValidGraph]' passed (0.099 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testLevelsAreAGeometricDrawThatDependsOnlyOnSeedAndNode]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testLevelsAreAGeometricDrawThatDependsOnlyOnSeedAndNode]' passed (0.006 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testLimitsAndSmallIndexes]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testLimitsAndSmallIndexes]' passed (0.010 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testPersistenceRoundTripGivesIdenticalResultsWithoutRebuilding]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testPersistenceRoundTripGivesIdenticalResultsWithoutRebuilding]' passed (0.149 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testQueriesThatDoNotFitTheSpaceAreRefused]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testQueriesThatDoNotFitTheSpaceAreRefused]' passed (0.006 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testRemovedVectorsAreNeverReturnedAndStayRemoved]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testRemovedVectorsAreNeverReturnedAndStayRemoved]' passed (0.090 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testRemovingEverythingLeavesAnEmptyAnswerAndTheIndexUsable]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testRemovingEverythingLeavesAnEmptyAnswerAndTheIndexUsable]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testReplacingAVectorMovesItsItem]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testReplacingAVectorMovesItsItem]' passed (0.038 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testReplacingEveryVectorKeepsTheIndexAccurate]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testReplacingEveryVectorKeepsTheIndexAccurate]' passed (0.191 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testResultsAreOrderedBestFirstAndAgreeWithTheExhaustiveSearch]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testResultsAreOrderedBestFirstAndAgreeWithTheExhaustiveSearch]' passed (0.139 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testTheClassicGreedyDescentIsAvailableAndStillAccurateInsideATopic]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testTheClassicGreedyDescentIsAvailableAndStillAccurateInsideATopic]' passed (0.276 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testTheGraphKeepsItsInvariants]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testTheGraphKeepsItsInvariants]' passed (0.037 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testTheSameSeedGivesTheSameGraphAndTheSameAnswers]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testTheSameSeedGivesTheSameGraphAndTheSameAnswers]' passed (0.206 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testTheTraversalChecksCancellationEvery64NodeVisits]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWIndexTests testTheTraversalChecksCancellationEvery64NodeVisits]' passed (0.070 seconds).
+Test Suite 'HNSWIndexTests' passed at 2026-11-17 17:40:52.811.
+	 Executed 26 tests, with 0 failures (0 unexpected) in 1.824 (1.827) seconds
+Test Suite 'HNSWRecallTests' started at 2026-11-17 17:40:52.811.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testQueriesBetweenTwoTopicsAreAnsweredThroughSeveralEntryPoints]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testQueriesBetweenTwoTopicsAreAnsweredThroughSeveralEntryPoints]' passed (5.080 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On100kDiffuseTopics]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On100kDiffuseTopics]' passed (29.881 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On100kTightTopics]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On100kTightTopics]' passed (28.886 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On20kDiffuseTopics]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On20kDiffuseTopics]' passed (5.206 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On20kTightTopics]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On20kTightTopics]' passed (3.951 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallOnIsotropicTopicsIsReportedAndRecoversWithBreadth]' started.
+/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineSemanticTests/HNSWRecallTests.swift:226: error: -[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallOnIsotropicTopicsIsReportedAndRecoversWithBreadth] : XCTAssertLessThan failed: ("0.0009419170091859996") is not less than ("0.0008333333333333334") - top-50 search, cache-cold p95
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallOnIsotropicTopicsIsReportedAndRecoversWithBreadth]' failed (13.450 seconds).
+Test Suite 'HNSWRecallTests' failed at 2026-11-17 17:42:19.267.
+	 Executed 6 tests, with 1 failure (0 unexpected) in 86.455 (86.456) seconds
+Test Suite 'ModelInputTests' started at 2026-11-17 17:42:19.267.
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testAPairBatchHoldsOneTruncatedPairPerPassage]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testAPairBatchHoldsOneTruncatedPairPerPassage]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testARelevanceScoreIsTheLogitOrTheMarginOfTwo]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testARelevanceScoreIsTheLogitOrTheMarginOfTwo]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testASentenceVectorIsPooledAccordingToTheShapeOfTheOutput]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testASentenceVectorIsPooledAccordingToTheShapeOfTheOutput]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testASentenceVectorOfTheWrongWidthOrShapeIsRefused]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testASentenceVectorOfTheWrongWidthOrShapeIsRefused]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testATextBatchStacksOneWindowPerText]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testATextBatchStacksOneWindowPerText]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testMeanPoolingAveragesOnlyTheTokensTheMaskKeeps]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testMeanPoolingAveragesOnlyTheTokensTheMaskKeeps]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testNormalizationGivesUnitLength]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testNormalizationGivesUnitLength]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testPoolingRefusesInputsThatDoNotFit]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testPoolingRefusesInputsThatDoNotFit]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testThe16PairsOfARerankFitOneBatchOf128TokenWindows]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.ModelInputTests testThe16PairsOfARerankFitOneBatchOf128TokenWindows]' passed (0.004 seconds).
+Test Suite 'ModelInputTests' passed at 2026-11-17 17:42:19.274.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.006 (0.007) seconds
+Test Suite 'PairTruncationTests' started at 2026-11-17 17:42:19.274.
+Test Case '-[ZTronSearchEngineSemanticTests.PairTruncationTests testAShortQueryIsNeverCutForALongPassage]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.PairTruncationTests testAShortQueryIsNeverCutForALongPassage]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.PairTruncationTests testTheClosedFormMatchesTheStepwiseRuleEverywhere]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.PairTruncationTests testTheClosedFormMatchesTheStepwiseRuleEverywhere]' passed (0.003 seconds).
+Test Suite 'PairTruncationTests' passed at 2026-11-17 17:42:19.277.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'QuantizedVectorStoreTests' started at 2026-11-17 17:42:19.277.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testAnEmptyStoreRoundTrips]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testAnEmptyStoreRoundTrips]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testBuildKeepsOrderAndFindsEveryIDByBinarySearch]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testBuildKeepsOrderAndFindsEveryIDByBinarySearch]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testBuildRefusesVectorsThatDoNotFitTheSpace]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testBuildRefusesVectorsThatDoNotFitTheSpace]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testChangesSurviveAFileRoundTripWithStableOrdinals]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testChangesSurviveAFileRoundTripWithStableOrdinals]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testCompactionDropsTombstonesAndRenumbers]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testCompactionDropsTombstonesAndRenumbers]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testDamagedFilesAreRefusedWithoutTrapping]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testDamagedFilesAreRefusedWithoutTrapping]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testExhaustiveSearchLimitsAndErrors]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testExhaustiveSearchLimitsAndErrors]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testExhaustiveSearchMatchesANaiveScan]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testExhaustiveSearchMatchesANaiveScan]' passed (0.007 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testFileRoundTripPreservesEverything]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testFileRoundTripPreservesEverything]' passed (0.006 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testFingerprintIdentifiesContent]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testFingerprintIdentifiesContent]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testIDsThatArePrefixesOfEachOtherAndNonASCIIIDsResolve]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testIDsThatArePrefixesOfEachOtherAndNonASCIIIDsResolve]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testOpeningForAnotherModelOrDimensionCountThrows]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testOpeningForAnotherModelOrDimensionCountThrows]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testOpeningMapsTheFileInsteadOfReadingIt]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testOpeningMapsTheFileInsteadOfReadingIt]' passed (0.133 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testRemoveTombstonesAndAllowsReinsertion]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testRemoveTombstonesAndAllowsReinsertion]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testStoredVectorsAreWithinHalfAStepOfTheOriginals]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testStoredVectorsAreWithinHalfAStepOfTheOriginals]' passed (0.008 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testUpsertAppendsReplacesAndIgnoresRepeats]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testUpsertAppendsReplacesAndIgnoresRepeats]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testUpsertRefusesVectorsThatDoNotFitTheSpace]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testUpsertRefusesVectorsThatDoNotFitTheSpace]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testWhenAnIDRepeatsItsLastVectorWins]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.QuantizedVectorStoreTests testWhenAnIDRepeatsItsLastVectorWins]' passed (0.000 seconds).
+Test Suite 'QuantizedVectorStoreTests' passed at 2026-11-17 17:42:19.444.
+	 Executed 18 tests, with 0 failures (0 unexpected) in 0.165 (0.167) seconds
+Test Suite 'RerankCalibrationGateTests' started at 2026-11-17 17:42:19.444.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testAMemoryWarningDuringThePassVoidsIt]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testAMemoryWarningDuringThePassVoidsIt]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testAMemoryWarningInTheLast10MinutesAloneKeepsTheStageOffWithoutPersistingIt]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testAMemoryWarningInTheLast10MinutesAloneKeepsTheStageOffWithoutPersistingIt]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testAModelThatFailsKeepsTheStageOffForTheLaunchWithoutPersistingIt]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testAModelThatFailsKeepsTheStageOffForTheLaunchWithoutPersistingIt]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testAP95Above15MillisecondsAloneDisablesTheStage]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testAP95Above15MillisecondsAloneDisablesTheStage]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testAStoredVerdictIsReusedAndTheModelIsNeverLoadedAgain]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testAStoredVerdictIsReusedAndTheModelIsNeverLoadedAgain]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testConcurrentCallersShareOneCalibrationPass]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testConcurrentCallersShareOneCalibrationPass]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testInvalidationTurnsTheStageOffForTheLaunchAndForcesANewMeasurementAtTheNext]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testInvalidationTurnsTheStageOffForTheLaunchAndForcesANewMeasurementAtTheNext]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testLessThan3GBOfMemoryAloneDisablesTheStageWithoutEverLoadingTheModel]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testLessThan3GBOfMemoryAloneDisablesTheStageWithoutEverLoadingTheModel]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testMemoryIsCountedInTheGigabytesADeviceIsSoldWith]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testMemoryIsCountedInTheGigabytesADeviceIsSoldWith]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testMemoryWarningsAreObservedByNameWithoutUIKit]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testMemoryWarningsAreObservedByNameWithoutUIKit]' passed (0.042 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testPercentilesUseTheNearestRank]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testPercentilesUseTheNearestRank]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testTheCalibratedRerankerAnswersCoreWithTheGatesVerdict]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testTheCalibratedRerankerAnswersCoreWithTheGatesVerdict]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testTheStageIsEnabledInsideAllThreeThresholds]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testTheStageIsEnabledInsideAllThreeThresholds]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testTheSyntheticPairsAreDeterministicAndFillTheWindow]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testTheSyntheticPairsAreDeterministicAndFillTheWindow]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testTheThresholdsAreConfigurable]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testTheThresholdsAreConfigurable]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testTheUserDefaultsStoreKeepsAndRemovesTheVerdict]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testTheUserDefaultsStoreKeepsAndRemovesTheVerdict]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testTheVerdictIsMeasuredAgainAfterAnAppOrOSUpdate]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testTheVerdictIsMeasuredAgainAfterAnAppOrOSUpdate]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testVerdictsAreKeptPerModelAndUnreadableOnesAreIgnored]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.RerankCalibrationGateTests testVerdictsAreKeptPerModelAndUnreadableOnesAreIgnored]' passed (0.000 seconds).
+Test Suite 'RerankCalibrationGateTests' passed at 2026-11-17 17:42:19.495.
+	 Executed 18 tests, with 0 failures (0 unexpected) in 0.049 (0.051) seconds
+Test Suite 'SemanticIndexTests' started at 2026-11-17 17:42:19.495.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testAnEmbeddingSpaceOutsideTheSupportedDimensionsIsRefused]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testAnEmbeddingSpaceOutsideTheSupportedDimensionsIsRefused]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testAnEmptyIndexAnswersWithNothing]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testAnEmptyIndexAnswersWithNothing]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testAnIndexIsBuiltFromAShippedVectorFileAndGraphFile]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testAnIndexIsBuiltFromAShippedVectorFileAndGraphFile]' passed (0.030 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testASetCreatedAtRuntimeFitsItsQuantizationOnceItHasEnoughVectors]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testASetCreatedAtRuntimeFitsItsQuantizationOnceItHasEnoughVectors]' passed (0.006 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testCompactDropsTheTombstones]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testCompactDropsTheTombstones]' passed (0.010 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testConcurrentChangesAndSearchesLeaveAConsistentIndex]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testConcurrentChangesAndSearchesLeaveAConsistentIndex]' passed (0.021 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testEmbedMissingEncodesOnlyItemsWithoutAVector]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testEmbedMissingEncodesOnlyItemsWithoutAVector]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testEmbedMissingKeepsWhatWasEmbeddedBeforeAFailureOrACancellation]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testEmbedMissingKeepsWhatWasEmbeddedBeforeAFailureOrACancellation]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testItemVectorsAreScaledToUnitLength]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testItemVectorsAreScaledToUnitLength]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testItIsInjectedIntoCoreThroughTheSemanticSearchingBoundary]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testItIsInjectedIntoCoreThroughTheSemanticSearchingBoundary]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testNearestRanksByCosineSimilarityAcrossLanguages]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testNearestRanksByCosineSimilarityAcrossLanguages]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testQueriesComeBackUnitLengthWhateverTheProviderReturns]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testQueriesComeBackUnitLengthWhateverTheProviderReturns]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testRepeatingAnUpsertChangesNothing]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testRepeatingAnUpsertChangesNothing]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testRuntimeChangesFollowALocaleSwitch]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testRuntimeChangesFollowALocaleSwitch]' passed (0.003 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testSaveWritesFilesTheNextLaunchLoads]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testSaveWritesFilesTheNextLaunchLoads]' passed (0.009 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testSetLocaleSwitchesVectorSetsWithBaseFallback]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testSetLocaleSwitchesVectorSetsWithBaseFallback]' passed (0.003 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testSetLocaleWithoutLocaleSetsIsANoOp]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testSetLocaleWithoutLocaleSetsIsANoOp]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testShippedFilesForAnotherModelOrDimensionCountAreRefused]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testShippedFilesForAnotherModelOrDimensionCountAreRefused]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testTheModelLoadsLazilyOnTheFirstQueryOnly]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testTheModelLoadsLazilyOnTheFirstQueryOnly]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testTheSameVectorsGiveTheSameAnswersWhateverTheDictionaryOrder]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testTheSameVectorsGiveTheSameAnswersWhateverTheDictionaryOrder]' passed (0.021 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testUnloadReleasesTheModelAndTheNextQueryReloadsIt]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testUnloadReleasesTheModelAndTheNextQueryReloadsIt]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testUpsertAddsAndReplacesAndRemoveTakesEffect]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testUpsertAddsAndReplacesAndRemoveTakesEffect]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testVectorsThatDoNotFitTheSpaceAreRefusedAndNothingIsStored]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.SemanticIndexTests testVectorsThatDoNotFitTheSpaceAreRefusedAndNothingIsStored]' passed (0.000 seconds).
+Test Suite 'SemanticIndexTests' passed at 2026-11-17 17:42:19.606.
+	 Executed 23 tests, with 0 failures (0 unexpected) in 0.110 (0.112) seconds
+Test Suite 'TokenizerLoaderTests' started at 2026-11-17 17:42:19.606.
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testAUnigramTokenizerJSONBehavesLikeTheVocabularyItDescribes]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testAUnigramTokenizerJSONBehavesLikeTheVocabularyItDescribes]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testAWordPieceTokenizerJSONBehavesLikeItsVocabulary]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testAWordPieceTokenizerJSONBehavesLikeItsVocabulary]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testMetaspaceKeepsTheMarkerInFrontOfEveryWord]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testMetaspaceKeepsTheMarkerInFrontOfEveryWord]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testPiecesOfAnyLengthAndScriptSurviveLoading]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testPiecesOfAnyLengthAndScriptSurviveLoading]' passed (0.102 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testTheFilesNextToTheModelSelectTheTokenizer]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testTheFilesNextToTheModelSelectTheTokenizer]' passed (0.009 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testTheNormalizerOfTheFileIsHonoured]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testTheNormalizerOfTheFileIsHonoured]' passed (0.003 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testThePieceTableFindsExactlyWhatItHolds]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testThePieceTableFindsExactlyWhatItHolds]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testUnsupportedOrMalformedDescriptionsAreRefused]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testUnsupportedOrMalformedDescriptionsAreRefused]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testVocabularyFilesWithWindowsLineEndingsAndEmptyFilesAreHandled]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.TokenizerLoaderTests testVocabularyFilesWithWindowsLineEndingsAndEmptyFilesAreHandled]' passed (0.000 seconds).
+Test Suite 'TokenizerLoaderTests' passed at 2026-11-17 17:42:19.728.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.121 (0.122) seconds
+Test Suite 'UnigramTokenizerTests' started at 2026-11-17 17:42:19.728.
+Test Case '-[ZTronSearchEngineSemanticTests.UnigramTokenizerTests testALongWordIsSegmentedInLinearTime]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.UnigramTokenizerTests testALongWordIsSegmentedInLinearTime]' passed (0.005 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.UnigramTokenizerTests testCharactersWithoutAPieceBecomeOneUnknownPerRun]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.UnigramTokenizerTests testCharactersWithoutAPieceBecomeOneUnknownPerRun]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.UnigramTokenizerTests testInvalidVocabulariesAreRefused]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.UnigramTokenizerTests testInvalidVocabulariesAreRefused]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.UnigramTokenizerTests testSingleTextAndPairsFollowTheTemplate]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.UnigramTokenizerTests testSingleTextAndPairsFollowTheTemplate]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.UnigramTokenizerTests testSpecialTokensSpelledInTheTextAreOrdinaryText]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.UnigramTokenizerTests testSpecialTokensSpelledInTheTextAreOrdinaryText]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.UnigramTokenizerTests testTextIsNormalizedLikeSentencePiece]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.UnigramTokenizerTests testTextIsNormalizedLikeSentencePiece]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.UnigramTokenizerTests testWordsGetAMetaspaceAndTheBestScoringSegmentation]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.UnigramTokenizerTests testWordsGetAMetaspaceAndTheBestScoringSegmentation]' passed (0.000 seconds).
+Test Suite 'UnigramTokenizerTests' passed at 2026-11-17 17:42:19.738.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.009 (0.009) seconds
+Test Suite 'VectorKernelTests' started at 2026-11-17 17:42:19.738.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testAsymmetricDotMatchesNaiveLoop]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testAsymmetricDotMatchesNaiveLoop]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testFloatDotMatchesNaiveLoop]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testFloatDotMatchesNaiveLoop]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testFloatSquaredDistanceMatchesNaiveLoop]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testFloatSquaredDistanceMatchesNaiveLoop]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testInt8DotAtTheExtremes]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testInt8DotAtTheExtremes]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testInt8DotIsExact]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testInt8DotIsExact]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testInt8SquaredDistanceIsExact]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testInt8SquaredDistanceIsExact]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testNormalizationRefusesVectorsWithoutDirection]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testNormalizationRefusesVectorsWithoutDirection]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testNormAndNormalization]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testNormAndNormalization]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testRowProductsMatchNaiveLoop]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testRowProductsMatchNaiveLoop]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testWidenReproducesEveryCode]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorKernelTests testWidenReproducesEveryCode]' passed (0.000 seconds).
+Test Suite 'VectorKernelTests' passed at 2026-11-17 17:42:19.742.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'VectorQuantizationTests' started at 2026-11-17 17:42:19.742.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testADimensionThatNeverMovesStillGetsAUsableStep]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testADimensionThatNeverMovesStillGetsAUsableStep]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testEncodeMatchesNaiveRounding]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testEncodeMatchesNaiveRounding]' passed (0.003 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testFittedStepIsFarFinerThanTheUniformOne]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testFittedStepIsFarFinerThanTheUniformOne]' passed (0.003 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testHeadroomShrinksAsTheSampleGrows]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testHeadroomShrinksAsTheSampleGrows]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testInvalidParametersAndVectorsAreRefused]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testInvalidParametersAndVectorsAreRefused]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testPreparedQueryReproducesTheDotWithTheDecodedRow]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testPreparedQueryReproducesTheDotWithTheDecodedRow]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testRoundTripErrorIsBoundedByHalfAStep]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testRoundTripErrorIsBoundedByHalfAStep]' passed (0.078 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testSmallSamplesFallBackToTheUniformRange]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testSmallSamplesFallBackToTheUniformRange]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testUniformRoundTripNeverClampsUnitVectors]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testUniformRoundTripNeverClampsUnitVectors]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testValuesOutsideTheRangeAreClamped]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorQuantizationTests testValuesOutsideTheRangeAreClamped]' passed (0.000 seconds).
+Test Suite 'VectorQuantizationTests' passed at 2026-11-17 17:42:19.832.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.088 (0.089) seconds
+Test Suite 'VectorSetCatalogTests' started at 2026-11-17 17:42:19.832.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorSetCatalogTests testACatalogWithoutLocalizedSetsAlwaysResolvesToBase]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorSetCatalogTests testACatalogWithoutLocalizedSetsAlwaysResolvesToBase]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorSetCatalogTests testDiscoveryReadsTheNamingConvention]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorSetCatalogTests testDiscoveryReadsTheNamingConvention]' passed (0.004 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorSetCatalogTests testOpenStoreLoadsTheActiveLocaleSetWithBaseFallback]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorSetCatalogTests testOpenStoreLoadsTheActiveLocaleSetWithBaseFallback]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.VectorSetCatalogTests testResolutionFollowsTheFieldFallbackChain]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.VectorSetCatalogTests testResolutionFollowsTheFieldFallbackChain]' passed (0.000 seconds).
+Test Suite 'VectorSetCatalogTests' passed at 2026-11-17 17:42:19.839.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.007 (0.007) seconds
+Test Suite 'WordPieceTokenizerTests' started at 2026-11-17 17:42:19.839.
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testAnOverlongWordIsUnknown]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testAnOverlongWordIsUnknown]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testAPairIsWrappedWithSegmentsAndTruncatedLongestFirst]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testAPairIsWrappedWithSegmentsAndTruncatedLongestFirst]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testAVocabularyWithoutItsSpecialTokensIsRefused]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testAVocabularyWithoutItsSpecialTokensIsRefused]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testAWordThatCannotBeSpelledIsUnknownAsAWhole]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testAWordThatCannotBeSpelledIsUnknownAsAWhole]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testControlCharactersAndWhitespaceAreCleaned]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testControlCharactersAndWhitespaceAreCleaned]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testLowercasingAndAccentStrippingFollowTheOptions]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testLowercasingAndAccentStrippingFollowTheOptions]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testPunctuationAndIdeographsStandAlone]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testPunctuationAndIdeographsStandAlone]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testSingleTextIsWrappedTruncatedAndPadded]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testSingleTextIsWrappedTruncatedAndPadded]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testSpecialTokensSpelledInTheTextAreOrdinaryText]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testSpecialTokensSpelledInTheTextAreOrdinaryText]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testTheTemplateAndPaddingComeFromTheVocabulary]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testTheTemplateAndPaddingComeFromTheVocabulary]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testWordsSplitIntoTheLongestPieces]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.WordPieceTokenizerTests testWordsSplitIntoTheLongestPieces]' passed (0.000 seconds).
+Test Suite 'WordPieceTokenizerTests' passed at 2026-11-17 17:42:19.844.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'ZTronSearchEngineSemanticTests.xctest' failed at 2026-11-17 17:42:19.844.
+	 Executed 172 tests, with 1 failure (0 unexpected) in 88.873 (88.888) seconds
+Test Suite 'Selected tests' failed at 2026-11-17 17:42:19.844.
+	 Executed 172 tests, with 1 failure (0 unexpected) in 88.873 (88.889) seconds
+HNSW gate | queries between two topics, diffuse topics 20000 x 384, 500 queries, efSearch=64 top-50 | recall@10 vs INT8 brute force 0.9338 with efEntry=64, 0.6756 with the classic greedy descent (efEntry=1)
+HNSW gate | diffuse topics (LID 27) 100000 x 384, 1000 queries, M=16 efConstruction=200 efSearch=64 efEntry=64 top-50, release build | recall@10 vs INT8 brute force 0.9940, vs Float brute force 0.9824 (quantization alone 0.9874) | top-50 search back to back p50 0.217 ms, p95 0.591 ms; cache-cold p50 0.356 ms, p95 0.544 ms | build 20.7 s | vector file 38.0 MB, graph file 13.1 MB
+HNSW gate | tight topics (LID 16) 100000 x 384, 1000 queries, M=16 efConstruction=200 efSearch=64 efEntry=64 top-50, release build | recall@10 vs INT8 brute force 0.9996, vs Float brute force 0.9826 (quantization alone 0.9830) | top-50 search back to back p50 0.207 ms, p95 0.568 ms; cache-cold p50 0.398 ms, p95 0.822 ms | build 17.4 s | vector file 38.0 MB, graph file 13.1 MB
+HNSW gate | diffuse topics (LID 27) 20000 x 384, 1000 queries, M=16 efConstruction=200 efSearch=64 efEntry=64 top-50, release build | recall@10 vs INT8 brute force 0.9940, vs Float brute force 0.9851 (quantization alone 0.9905) | top-50 search back to back p50 0.098 ms, p95 0.197 ms; cache-cold p50 0.345 ms, p95 0.737 ms | build 2.4 s | vector file 7.6 MB, graph file 2.6 MB
+HNSW gate | tight topics (LID 16) 20000 x 384, 1000 queries, M=16 efConstruction=200 efSearch=64 efEntry=64 top-50, release build | recall@10 vs INT8 brute force 0.9999, vs Float brute force 0.9847 (quantization alone 0.9848) | top-50 search back to back p50 0.081 ms, p95 0.106 ms; cache-cold p50 0.194 ms, p95 0.312 ms | build 2.1 s | vector file 7.6 MB, graph file 2.6 MB
+HNSW gate | isotropic topics (LID 94) 20000 x 384, 1000 queries, M=16 efConstruction=200 efSearch=64 efEntry=64 top-50, release build | recall@10 vs INT8 brute force 0.9200, vs Float brute force 0.9040 (quantization alone 0.9680) | top-50 search back to back p50 0.146 ms, p95 0.326 ms; cache-cold p50 0.345 ms, p95 0.820 ms | build 3.6 s | vector file 7.6 MB, graph file 2.6 MB
+HNSW gate | isotropic topics (LID 94) 20000 x 384, 1000 queries, M=16 efConstruction=200 efSearch=256 efEntry=64 top-50, release build | recall@10 vs INT8 brute force 0.9978, vs Float brute force 0.9661 (quantization alone 0.9680) | top-50 search back to back p50 0.163 ms, p95 0.255 ms; cache-cold p50 0.544 ms, p95 0.942 ms | build 3.6 s | vector file 7.6 MB, graph file 2.6 MB
+Note: Some test targets reported failures:
+  - ZTronSearchEngineSemanticTests (XCTest)
+EXIT: 1
+END 2026-11-17 17:42:20

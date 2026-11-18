@@ -1,0 +1,262 @@
+START 2026-11-17 17:22:36
+CMD: swift test --package-path Adapters/ZTronSearchEngineSQLite
+LOAD: 17:22  up 3 days,  7:03, 2 users, load averages: 9.24 11.44 19.24
+BOOTED SIMULATORS: 12
+Fetching https://github.com/stephencelis/SQLite.swift.git from cache
+Fetched https://github.com/stephencelis/SQLite.swift.git from cache (0.57s)
+Computing version for https://github.com/stephencelis/SQLite.swift.git
+Computed https://github.com/stephencelis/SQLite.swift.git at 0.17.0 (1.34s)
+Creating working copy for https://github.com/stephencelis/SQLite.swift.git
+Working copy of https://github.com/stephencelis/SQLite.swift.git resolved at 0.17.0
+Building for debugging...
+[Pre-planning 1 / 184]
+[Planning deferred tasks]
+[54 / 95] SQLite.swift_SQLite
+[54 / 95]
+[56 / 97] SQLite
+[65 / 162]
+[66 / 162]
+[73 / 162]
+[78 / 162]
+[80 / 162]
+[84 / 162]
+[86 / 162]
+[87 / 162]
+[89 / 162]
+[93 / 162]
+[95 / 162]
+[96 / 162]
+[97 / 162]
+[106 / 162] SQLite
+[108 / 162]
+[109 / 162] SQLite
+[111 / 162] SQLite
+[116 / 162]
+[117 / 162]
+[119 / 162] ZTronSearchEngine
+[126 / 162] ZTronSearchEngine
+[127 / 162] ZTronSearchEngine
+[133 / 162]
+[134 / 163] ZTronSearchEngine
+[134 / 163] ZTronSearchEngineSQLite
+[138 / 172] ZTronSearchEngineSQLite
+[139 / 172] ZTronSearchEngineSQLite
+[145 / 172] ZTronSearchEngineSQLite
+[146 / 172] ZTronSearchEngineSQLite
+[147 / 172] ZTronSearchEngineSQLiteTests-product
+[151 / 172]
+[153 / 172] ZTronSearchEngineSQLite
+[153 / 172] ZTronSearchEngine
+[154 / 172] ZTronSearchEngine
+[162 / 173] ZTronSearchEngineSQLiteTests-product
+[171 / 205]
+[176 / 205]
+[179 / 205]
+[180 / 205]
+[181 / 205]
+[184 / 205]
+[185 / 205]
+[194 / 205] ZTronSearchEngineSQLiteTests-product
+[195 / 205] ZTronSearchEngineSQLiteTests-product
+[199 / 205] ZTronSearchEngineSQLiteTests-product
+[201 / 205] ZTronSearchEngineSQLiteTests-product
+Build complete! (19,13 s)
+Test Suite 'All tests' started at 2026-11-17 17:23:01.063.
+Test Suite 'ZTronSearchEngineSQLiteTests.xctest' started at 2026-11-17 17:23:01.065.
+Test Suite 'BindingTests' started at 2026-11-17 17:23:01.065.
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testConversionsWithSQLiteSwiftBindings]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testConversionsWithSQLiteSwiftBindings]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testEveryValueRoundTripsThroughAStatement]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testEveryValueRoundTripsThroughAStatement]' passed (0.003 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testEveryValueRoundTripsThroughATable]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testEveryValueRoundTripsThroughATable]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testNullIsNeverConfusedWithAMissingRow]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testNullIsNeverConfusedWithAMissingRow]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testParameterCountAgreesWithSQLite]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testParameterCountAgreesWithSQLite]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testParameterCountOfTextSQLiteWouldRefuseDoesNotTrap]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testParameterCountOfTextSQLiteWouldRefuseDoesNotTrap]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testRunReturnsTheRowsTheStatementChanged]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testRunReturnsTheRowsTheStatementChanged]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testTextWithoutAStatementThrowsInsteadOfTrapping]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testTextWithoutAStatementThrowsInsteadOfTrapping]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testWrongNumberOfBindingsThrowsInsteadOfTrapping]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BindingTests testWrongNumberOfBindingsThrowsInsteadOfTrapping]' passed (0.001 seconds).
+Test Suite 'BindingTests' passed at 2026-11-17 17:23:01.074.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.007 (0.008) seconds
+Test Suite 'BundleLocalizedStringResolverTests' started at 2026-11-17 17:23:01.074.
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testAMissingKeyIsNilAndNeverTheKey]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testAMissingKeyIsNilAndNeverTheKey]' passed (0.004 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testAStringsTableIsReadOnceAndKept]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testAStringsTableIsReadOnceAndKept]' passed (0.003 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testBaseLocalizationIsNotALanguage]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testBaseLocalizationIsNotALanguage]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testKeysResolvePerLanguageAndTable]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testKeysResolvePerLanguageAndTable]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testLanguagesListTheDevelopmentLocalizationFirst]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testLanguagesListTheDevelopmentLocalizationFirst]' passed (0.003 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testLanguagesWithOtherDevelopmentRegions]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testLanguagesWithOtherDevelopmentRegions]' passed (0.008 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testMainIsRegisteredByDefaultAndCanBeReplaced]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testMainIsRegisteredByDefaultAndCanBeReplaced]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testResolverIsSharedAcrossTasks]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testResolverIsSharedAcrossTasks]' passed (0.032 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testUnknownBundlesAndLanguagesResolveNothing]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.BundleLocalizedStringResolverTests testUnknownBundlesAndLanguagesResolveNothing]' passed (0.002 seconds).
+Test Suite 'BundleLocalizedStringResolverTests' passed at 2026-11-17 17:23:01.131.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.057 (0.058) seconds
+Test Suite 'ChangeStreamTests' started at 2026-11-17 17:23:01.131.
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testACommitIsPublishedWithoutAnyFurtherStatement]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testACommitIsPublishedWithoutAnyFurtherStatement]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testCancellingTheConsumerRemovesItsSubscription]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testCancellingTheConsumerRemovesItsSubscription]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testDeleteWithAWhereClauseReportsEveryRow]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testDeleteWithAWhereClauseReportsEveryRow]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testDroppingAStreamRemovesItsSubscription]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testDroppingAStreamRemovesItsSubscription]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testEachCommitYieldsOneChangeWithTheRowsItInsertedUpdatedAndDeleted]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testEachCommitYieldsOneChangeWithTheRowsItInsertedUpdatedAndDeleted]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testEverySubscriberGetsItsOwnStream]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testEverySubscriberGetsItsOwnStream]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testHostStatementsThroughWithConnectionAreObserved]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testHostStatementsThroughWithConnectionAreObserved]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testOneCommitThatTouchesTwoTablesYieldsOneChangePerTable]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testOneCommitThatTouchesTwoTablesYieldsOneChangePerTable]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testOnlySubscribedTablesAreReported]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testOnlySubscribedTablesAreReported]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testRolledBackTransactionsYieldNothing]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testRolledBackTransactionsYieldNothing]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testSubscriptionStartsWithTheStatementsThatFollowIt]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testSubscriptionStartsWithTheStatementsThatFollowIt]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testTableNamesMatchLikeSQLiteMatchesThem]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testTableNamesMatchLikeSQLiteMatchesThem]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testUnknownChangesReachTheSubscribersOfTheTable]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ChangeStreamTests testUnknownChangesReachTheSubscribersOfTheTable]' passed (0.000 seconds).
+Test Suite 'ChangeStreamTests' passed at 2026-11-17 17:23:01.138.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.006 (0.006) seconds
+Test Suite 'ConnectionTests' started at 2026-11-17 17:23:01.138.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testBorrowedBodiesAreReleasedBeforeTheCallerResumes]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testBorrowedBodiesAreReleasedBeforeTheCallerResumes]' passed (0.022 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testCallsAfterCloseThrowAndCloseIsIdempotent]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testCallsAfterCloseThrowAndCloseIsIdempotent]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testCloseEndsEveryChangeStream]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testCloseEndsEveryChangeStream]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testConcurrentCallersAreSerialized]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testConcurrentCallersAreSerialized]' passed (0.004 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testFileDatabaseIsCreatedAndPersistsAcrossConnections]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testFileDatabaseIsCreatedAndPersistsAcrossConnections]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testFilePathWithSpacesAndURICharactersIsTakenLiterally]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testFilePathWithSpacesAndURICharactersIsTakenLiterally]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testInMemoryDatabasesArePrivateToTheirConnection]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testInMemoryDatabasesArePrivateToTheirConnection]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testNonFileURLIsRefused]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testNonFileURLIsRefused]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testOpenThroughTheBoundaryProtocol]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testOpenThroughTheBoundaryProtocol]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testReadOnlyFileRefusesWriteAndStillReads]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testReadOnlyFileRefusesWriteAndStillReads]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testReadOnlyOpenOfAMissingFileThrows]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testReadOnlyOpenOfAMissingFileThrows]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testURIWithReadOnlyModeIsReadOnly]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testURIWithReadOnlyModeIsReadOnly]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testURIWithSharedMemoryDatabaseIsSeenByTwoConnections]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testURIWithSharedMemoryDatabaseIsSeenByTwoConnections]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testWALIsEnabledOnRequestAndReportedByThePragma]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testWALIsEnabledOnRequestAndReportedByThePragma]' passed (0.029 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testWALRequestLeavesInMemoryAndReadOnlyDatabasesAlone]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ConnectionTests testWALRequestLeavesInMemoryAndReadOnlyDatabasesAlone]' passed (0.002 seconds).
+Test Suite 'ConnectionTests' passed at 2026-11-17 17:23:01.203.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 0.065 (0.066) seconds
+Test Suite 'DatabaseTargetsTests' started at 2026-11-17 17:23:01.203.
+Test Case '-[ZTronSearchEngineSQLiteTests.DatabaseTargetsTests testSection159TargetsOverSQLite]' started.
+/Users/admin/Documents/ZTronSearchEngine/Adapters/ZTronSearchEngineSQLite/Tests/ZTronSearchEngineSQLiteTests/DatabaseTargetsTests.swift:70: -[ZTronSearchEngineSQLiteTests.DatabaseTargetsTests testSection159TargetsOverSQLite] : Test skipped - budgets are asserted on optimized builds: swift test -c release -Xswiftc -enable-testing --filter DatabaseTargetsTests
+Test Case '-[ZTronSearchEngineSQLiteTests.DatabaseTargetsTests testSection159TargetsOverSQLite]' skipped (0.001 seconds).
+Test Suite 'DatabaseTargetsTests' passed at 2026-11-17 17:23:01.204.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'EndToEndTests' started at 2026-11-17 17:23:01.204.
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testAChangeCommittedDuringARefreshSurvivesIt]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testAChangeCommittedDuringARefreshSurvivesIt]' passed (0.057 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testAChangeCommittedWhileAContextLoadsReachesTheIndex]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testAChangeCommittedWhileAContextLoadsReachesTheIndex]' passed (0.034 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testARowIsNotSkippedWhenAnEarlierRowIsDeletedBetweenTwoPages]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testARowIsNotSkippedWhenAnEarlierRowIsDeletedBetweenTwoPages]' passed (0.050 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testChangesMadeThroughTheConnectionReachTheResults]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testChangesMadeThroughTheConnectionReachTheResults]' passed (0.157 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testContextInAnotherLocaleSearchesTheStringsOfThatLanguage]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testContextInAnotherLocaleSearchesTheStringsOfThatLanguage]' passed (0.028 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testFilteredTableSourceIsReadAgainAsAWholeWhenItsTableChanges]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testFilteredTableSourceIsReadAgainAsAWholeWhenItsTableChanges]' passed (0.024 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testIndexPersistsInsideTheHostDatabaseAndIsAdoptedByTheNextService]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testIndexPersistsInsideTheHostDatabaseAndIsAdoptedByTheNextService]' passed (0.072 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testServiceSearchesTheRowsOfARealTable]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.EndToEndTests testServiceSearchesTheRowsOfARealTable]' passed (0.028 seconds).
+Test Suite 'EndToEndTests' passed at 2026-11-17 17:23:01.654.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.449 (0.450) seconds
+Test Suite 'ExpressionRenderingTests' started at 2026-11-17 17:23:01.654.
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testComposedSelectOfAFilteredTableKeepsEveryBindingInItsPlace]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testComposedSelectOfAFilteredTableKeepsEveryBindingInItsPlace]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testComposedSelectOfATypedSourceRunsAgainstRealData]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testComposedSelectOfATypedSourceRunsAgainstRealData]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testComposedSelectOfAViewAndOfAliasedTablesRunAgainstRealData]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testComposedSelectOfAViewAndOfAliasedTablesRunAgainstRealData]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testComposedSelectReadsThroughCoreInPages]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testComposedSelectReadsThroughCoreInPages]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testOtherExpressiblesRenderTheirExpression]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testOtherExpressiblesRenderTheirExpression]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testSourceIsDeclaredFromTypedColumns]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testSourceIsDeclaredFromTypedColumns]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testSourceKnowsWhereARowIDExists]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testSourceKnowsWhereARowIDExists]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testStringExpressionsRenderAsQuotedIdentifiers]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testStringExpressionsRenderAsQuotedIdentifiers]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testTablesWithClausesRenderAsSubselects]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testTablesWithClausesRenderAsSubselects]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testTablesWithoutClausesRenderAsTheirQuotedName]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testTablesWithoutClausesRenderAsTheirQuotedName]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testTemplatesAndBindingsPassThroughUntouched]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ExpressionRenderingTests testTemplatesAndBindingsPassThroughUntouched]' passed (0.000 seconds).
+Test Suite 'ExpressionRenderingTests' passed at 2026-11-17 17:23:01.659.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'IndexStoreTests' started at 2026-11-17 17:23:01.659.
+Test Case '-[ZTronSearchEngineSQLiteTests.IndexStoreTests testAFailedSaveLeavesThePreviousGenerationInPlace]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.IndexStoreTests testAFailedSaveLeavesThePreviousGenerationInPlace]' passed (0.138 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.IndexStoreTests testANewGenerationReplacesThePreviousOneAtomically]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.IndexStoreTests testANewGenerationReplacesThePreviousOneAtomically]' passed (0.210 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.IndexStoreTests testAReadOnlyConnectionRefusesToPersistTheIndex]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.IndexStoreTests testAReadOnlyConnectionRefusesToPersistTheIndex]' passed (0.014 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.IndexStoreTests testIndexIsWrittenAndReadBackThroughTheConnection]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.IndexStoreTests testIndexIsWrittenAndReadBackThroughTheConnection]' passed (1.274 seconds).
+Test Suite 'IndexStoreTests' passed at 2026-11-17 17:23:03.296.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 1.637 (1.638) seconds
+Test Suite 'ReadmeSampleTests' started at 2026-11-17 17:23:03.296.
+Test Case '-[ZTronSearchEngineSQLiteTests.ReadmeSampleTests testHostWiringSample]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.ReadmeSampleTests testHostWiringSample]' passed (0.028 seconds).
+Test Suite 'ReadmeSampleTests' passed at 2026-11-17 17:23:03.325.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.028 (0.028) seconds
+Test Suite 'TransactionTests' started at 2026-11-17 17:23:03.325.
+Test Case '-[ZTronSearchEngineSQLiteTests.TransactionTests testReaderAndWriterRefuseToWorkAfterTheirTransaction]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.TransactionTests testReaderAndWriterRefuseToWorkAfterTheirTransaction]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.TransactionTests testReadSeesOneSnapshotWhileAnotherConnectionCommits]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.TransactionTests testReadSeesOneSnapshotWhileAnotherConnectionCommits]' passed (0.004 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.TransactionTests testReadThatThrowsLeavesTheConnectionUsable]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.TransactionTests testReadThatThrowsLeavesTheConnectionUsable]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.TransactionTests testRowsAreReadBeforeTheTransactionEnds]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.TransactionTests testRowsAreReadBeforeTheTransactionEnds]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.TransactionTests testWriteCommitsWhenTheBodyReturnsAndHandsItsValueBack]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.TransactionTests testWriteCommitsWhenTheBodyReturnsAndHandsItsValueBack]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.TransactionTests testWriteRollsBackWhenAStatementFails]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.TransactionTests testWriteRollsBackWhenAStatementFails]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineSQLiteTests.TransactionTests testWriteRollsBackWhenTheBodyThrowsAndRethrowsItsError]' started.
+Test Case '-[ZTronSearchEngineSQLiteTests.TransactionTests testWriteRollsBackWhenTheBodyThrowsAndRethrowsItsError]' passed (0.000 seconds).
+Test Suite 'TransactionTests' passed at 2026-11-17 17:23:03.331.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.006 (0.006) seconds
+Test Suite 'ZTronSearchEngineSQLiteTests.xctest' passed at 2026-11-17 17:23:03.331.
+	 Executed 78 tests, with 1 test skipped and 0 failures (0 unexpected) in 2.259 (2.266) seconds
+Test Suite 'All tests' passed at 2026-11-17 17:23:03.331.
+	 Executed 78 tests, with 1 test skipped and 0 failures (0 unexpected) in 2.259 (2.268) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.
+EXIT: 0
+END 2026-11-17 17:23:03

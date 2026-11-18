@@ -1,0 +1,56 @@
+START 2026-11-17 17:43:38
+CMD: env ZTRON_SEMANTIC_LARGE=1 swift test -c release -Xswiftc -enable-testing --scratch-path .build-release --skip-build --filter HNSWRecallTests
+LOAD: 17:43  up 3 days,  7:24, 2 users, load averages: 10.08 42.68 87.39
+BOOTED SIMULATORS: 12
+Test Suite 'Selected tests' started at 2026-11-17 17:43:40.106.
+Test Suite 'ZTronSearchFixturesTests.xctest' started at 2026-11-17 17:43:40.107.
+Test Suite 'ZTronSearchFixturesTests.xctest' passed at 2026-11-17 17:43:40.107.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-17 17:43:40.107.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'Selected tests' started at 2026-11-17 17:43:40.185.
+Test Suite 'ZTronSearchEngineUITests.xctest' started at 2026-11-17 17:43:40.186.
+Test Suite 'ZTronSearchEngineUITests.xctest' passed at 2026-11-17 17:43:40.186.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-17 17:43:40.186.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'Selected tests' started at 2026-11-17 17:43:40.263.
+Test Suite 'ZTronSearchEngineTests.xctest' started at 2026-11-17 17:43:40.264.
+Test Suite 'ZTronSearchEngineTests.xctest' passed at 2026-11-17 17:43:40.264.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-11-17 17:43:40.264.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'Selected tests' started at 2026-11-17 17:43:40.322.
+Test Suite 'ZTronSearchEngineSemanticTests.xctest' started at 2026-11-17 17:43:40.323.
+Test Suite 'HNSWRecallTests' started at 2026-11-17 17:43:40.323.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testQueriesBetweenTwoTopicsAreAnsweredThroughSeveralEntryPoints]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testQueriesBetweenTwoTopicsAreAnsweredThroughSeveralEntryPoints]' passed (2.885 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On100kDiffuseTopics]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On100kDiffuseTopics]' passed (29.756 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On100kTightTopics]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On100kTightTopics]' passed (26.126 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On20kDiffuseTopics]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On20kDiffuseTopics]' passed (5.153 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On20kTightTopics]' started.
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallAt10On20kTightTopics]' passed (6.614 seconds).
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallOnIsotropicTopicsIsReportedAndRecoversWithBreadth]' started.
+/Users/admin/Documents/ZTronSearchEngine/Tests/ZTronSearchEngineSemanticTests/HNSWRecallTests.swift:226: error: -[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallOnIsotropicTopicsIsReportedAndRecoversWithBreadth] : XCTAssertLessThan failed: ("0.0009524160122964531") is not less than ("0.0008333333333333334") - top-50 search, cache-cold p95
+Test Case '-[ZTronSearchEngineSemanticTests.HNSWRecallTests testRecallOnIsotropicTopicsIsReportedAndRecoversWithBreadth]' failed (16.397 seconds).
+Test Suite 'HNSWRecallTests' failed at 2026-11-17 17:45:07.255.
+	 Executed 6 tests, with 1 failure (0 unexpected) in 86.930 (86.931) seconds
+Test Suite 'ZTronSearchEngineSemanticTests.xctest' failed at 2026-11-17 17:45:07.255.
+	 Executed 6 tests, with 1 failure (0 unexpected) in 86.930 (86.931) seconds
+Test Suite 'Selected tests' failed at 2026-11-17 17:45:07.255.
+	 Executed 6 tests, with 1 failure (0 unexpected) in 86.930 (86.932) seconds
+HNSW gate | queries between two topics, diffuse topics 20000 x 384, 500 queries, efSearch=64 top-50 | recall@10 vs INT8 brute force 0.9338 with efEntry=64, 0.6756 with the classic greedy descent (efEntry=1)
+HNSW gate | diffuse topics (LID 27) 100000 x 384, 1000 queries, M=16 efConstruction=200 efSearch=64 efEntry=64 top-50, release build | recall@10 vs INT8 brute force 0.9940, vs Float brute force 0.9824 (quantization alone 0.9874) | top-50 search back to back p50 0.198 ms, p95 0.324 ms; cache-cold p50 0.449 ms, p95 0.823 ms | build 19.7 s | vector file 38.0 MB, graph file 13.1 MB
+HNSW gate | tight topics (LID 16) 100000 x 384, 1000 queries, M=16 efConstruction=200 efSearch=64 efEntry=64 top-50, release build | recall@10 vs INT8 brute force 0.9996, vs Float brute force 0.9826 (quantization alone 0.9830) | top-50 search back to back p50 0.164 ms, p95 0.328 ms; cache-cold p50 0.342 ms, p95 0.619 ms | build 16.6 s | vector file 38.0 MB, graph file 13.1 MB
+HNSW gate | diffuse topics (LID 27) 20000 x 384, 1000 queries, M=16 efConstruction=200 efSearch=64 efEntry=64 top-50, release build | recall@10 vs INT8 brute force 0.9940, vs Float brute force 0.9851 (quantization alone 0.9905) | top-50 search back to back p50 0.113 ms, p95 0.181 ms; cache-cold p50 0.314 ms, p95 0.554 ms | build 2.8 s | vector file 7.6 MB, graph file 2.6 MB
+HNSW gate | tight topics (LID 16) 20000 x 384, 1000 queries, M=16 efConstruction=200 efSearch=64 efEntry=64 top-50, release build | recall@10 vs INT8 brute force 0.9999, vs Float brute force 0.9847 (quantization alone 0.9848) | top-50 search back to back p50 0.186 ms, p95 0.487 ms; cache-cold p50 0.303 ms, p95 0.581 ms | build 3.2 s | vector file 7.6 MB, graph file 2.6 MB
+HNSW gate | isotropic topics (LID 94) 20000 x 384, 1000 queries, M=16 efConstruction=200 efSearch=64 efEntry=64 top-50, release build | recall@10 vs INT8 brute force 0.9200, vs Float brute force 0.9040 (quantization alone 0.9680) | top-50 search back to back p50 0.124 ms, p95 0.208 ms; cache-cold p50 0.341 ms, p95 0.579 ms | build 4.0 s | vector file 7.6 MB, graph file 2.6 MB
+HNSW gate | isotropic topics (LID 94) 20000 x 384, 1000 queries, M=16 efConstruction=200 efSearch=256 efEntry=64 top-50, release build | recall@10 vs INT8 brute force 0.9978, vs Float brute force 0.9661 (quantization alone 0.9680) | top-50 search back to back p50 0.481 ms, p95 0.918 ms; cache-cold p50 0.568 ms, p95 0.952 ms | build 6.8 s | vector file 7.6 MB, graph file 2.6 MB
+Note: Some test targets reported failures:
+  - ZTronSearchEngineSemanticTests (XCTest)
+EXIT: 1
+LOAD AFTER: 17:45  up 3 days,  7:25, 2 users, load averages: 10.06 34.03 79.55
+END 2026-11-17 17:45:07

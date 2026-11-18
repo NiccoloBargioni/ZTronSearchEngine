@@ -1,0 +1,335 @@
+START 2026-11-17 17:23:03
+CMD: swift test --package-path Adapters/ZTronSearchEngineAssetKit
+LOAD: 17:23  up 3 days,  7:03, 2 users, load averages: 13.19 12.19 19.28
+BOOTED SIMULATORS: 12
+Building for debugging...
+[Constructing description]
+[Planning 1 / 329]
+[Planning deferred tasks]
+[12 / 164] ZTronSearchEngineAssetKitTests-product
+[76 / 164]
+[78 / 166] ZTronAssetModel
+[86 / 229]
+[88 / 231]
+[90 / 231]
+[94 / 231]
+[98 / 231]
+[99 / 231]
+[101 / 231]
+[104 / 231]
+[106 / 231]
+[108 / 231]
+[111 / 231]
+[114 / 231]
+[116 / 231]
+[117 / 231]
+[118 / 231]
+[121 / 231]
+[130 / 231] ZTronAssetModel
+[131 / 231] ZTronAssetModel
+[132 / 231]
+[135 / 231] ZTronAssetModel
+[137 / 231] ZTronAssetModel
+[143 / 231] ZTronSearchEngine
+[145 / 231] ZTronSearchEngine
+[147 / 231] ZTronSearchEngine
+[148 / 231] ZTronSearchEngine
+[150 / 231] ZTronSearchEngine
+[156 / 232] ZTronAssetTransport
+[159 / 244]
+[160 / 253] ZTronAssetStorage
+[162 / 253] ZTronAssetTransport
+[163 / 253] ZTronAssetTransport
+[165 / 253] ZTronAssetTransport
+[171 / 253] ZTronAssetTransport
+[172 / 253] ZTronAssetTransport
+[173 / 253] ZTronAssetTransport
+[176 / 253] ZTronAssetStorage
+[183 / 253] ZTronAssetStorage
+[183 / 253] ZTronAssetTransport
+[185 / 253] ZTronAssetStorage
+[186 / 253] ZTronAssetStorage
+[187 / 253] ZTronSearchEngine
+[189 / 253] ZTronSearchEngine
+[190 / 253] ZTronAssetStorage
+[194 / 254] ZTronAssetModel
+[196 / 255] ZTronAssetModel
+[197 / 268]
+[201 / 277]
+[203 / 277] ZTronAssetSync
+[203 / 277] ZTronAssetStorage
+[206 / 277] ZTronAssetSync
+[215 / 277] ZTronAssetAppleHosted
+[220 / 277] ZTronAssetStorage
+[222 / 277] ZTronAssetSync
+[223 / 277] ZTronAssetAppleHosted
+[225 / 277] ZTronAssetKit
+[227 / 277] ZTronAssetAppleHosted
+[230 / 277] ZTronAssetAppleHosted
+[231 / 277] ZTronAssetAppleHosted
+[233 / 277] ZTronAssetAppleHosted
+[234 / 278] ZTronAssetAppleHosted
+[236 / 278] ZTronAssetKit
+[241 / 287] ZTronAssetKit
+[242 / 287] ZTronAssetKit
+[245 / 287] ZTronAssetKit
+[250 / 287] ZTronAssetKit
+[252 / 288] ZTronAssetKit
+[253 / 288] ZTronAssetSwiftUI
+[259 / 294] ZTronAssetSwiftUI
+[266 / 295] ZTronAssetSwiftUI
+[267 / 295] ZTronAssetSync
+[269 / 295] ZTronAssetSync
+[271 / 295] ZTronSearchEngineAssetKit
+[280 / 304] ZTronSearchEngineAssetKit
+[288 / 304] ZTronSearchEngineAssetKit
+[294 / 305] ZTronSearchEngineAssetKit-product
+[294 / 305] ZTronSearchEngineAssetKitTests-product
+[306 / 335]
+[308 / 335]
+[310 / 335]
+[311 / 335]
+[314 / 335]
+[315 / 335]
+[324 / 335] ZTronSearchEngineAssetKitTests-product
+[325 / 335] ZTronSearchEngineAssetKitTests-product
+[329 / 335] ZTronSearchEngineAssetKitTests-product
+[331 / 335] ZTronSearchEngineAssetKitTests-product
+[334 / 335] ZTronSearchEngineAssetKitTests-product
+Build complete! (39,85 s)
+Test Suite 'All tests' started at 2026-11-17 17:23:45.784.
+Test Suite 'ZTronSearchEngineAssetKitTests.xctest' started at 2026-11-17 17:23:45.784.
+Test Suite 'AvailabilityTests' started at 2026-11-17 17:23:45.784.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testABlobOfTheRightNameButAnotherRecordedSizeIsNotAvailable]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testABlobOfTheRightNameButAnotherRecordedSizeIsNotAvailable]' passed (0.007 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testABlobThatIsGoneFromTheDiskIsNotAvailable]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testABlobThatIsGoneFromTheDiskIsNotAvailable]' passed (0.004 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testABlobThatWasCutShortOnDiskIsNotAvailable]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testABlobThatWasCutShortOnDiskIsNotAvailable]' passed (0.004 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testADirectoryWithABrokenLinkIsRemoved]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testADirectoryWithABrokenLinkIsRemoved]' passed (0.007 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testAModelWithoutFilesIsAvailableInAnEmptyDirectory]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testAModelWithoutFilesIsAvailableInAnEmptyDirectory]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testAnotherRevisionOfAStoredModelIsMissing]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testAnotherRevisionOfAStoredModelIsMissing]' passed (0.005 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testAnUnusableDescriptorIsFailedWithoutAskingTheClient]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testAnUnusableDescriptorIsFailedWithoutAskingTheClient]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testAnythingElseInTheDirectoryIsRemoved]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testAnythingElseInTheDirectoryIsRemoved]' passed (0.007 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testASecondCallLeavesTheDirectoryUnchanged]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testASecondCallLeavesTheDirectoryUnchanged]' passed (0.006 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testAStartFailureIsReportedAsFailed]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testAStartFailureIsReportedAsFailed]' passed (0.011 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testEveryFileStoredAndVerifiedIsAvailable]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testEveryFileStoredAndVerifiedIsAvailable]' passed (0.005 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testFilesInSubdirectoriesKeepTheirPaths]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testFilesInSubdirectoriesKeepTheirPaths]' passed (0.005 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testNothingStoredIsMissingAndNothingIsRequested]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testNothingStoredIsMissingAndNothingIsRequested]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testSomeFilesStoredIsMissing]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testSomeFilesStoredIsMissing]' passed (0.003 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testStoredBytesThatAreNotTheDescribedOnesAreNotAvailable]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testStoredBytesThatAreNotTheDescribedOnesAreNotAvailable]' passed (0.004 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testTheDirectoryGoesWhenTheStoreNoLongerHoldsAFile]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testTheDirectoryGoesWhenTheStoreNoLongerHoldsAFile]' passed (0.005 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testTheDirectoryHoldsEveryFileUnderItsOwnName]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testTheDirectoryHoldsEveryFileUnderItsOwnName]' passed (0.005 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testTheDirectoryStaysWhileItsLinksHold]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testTheDirectoryStaysWhileItsLinksHold]' passed (0.008 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testTheLinksFollowABlobThatMoved]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testTheLinksFollowABlobThatMoved]' passed (0.006 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testTwoFilesOfTheSameContentLinkToOneBlob]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.AvailabilityTests testTwoFilesOfTheSameContentLinkToOneBlob]' passed (0.002 seconds).
+Test Suite 'AvailabilityTests' passed at 2026-11-17 17:23:45.885.
+	 Executed 20 tests, with 0 failures (0 unexpected) in 0.098 (0.100) seconds
+Test Suite 'FetchTests' started at 2026-11-17 17:23:45.885.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testABlobThatIsGoneFromTheDiskIsDownloadedAgain]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testABlobThatIsGoneFromTheDiskIsDownloadedAgain]' passed (0.007 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testADescriptorWhoseSizeContradictsItsChecksumFailsWithChecksumAndKeepsTheBytes]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testADescriptorWhoseSizeContradictsItsChecksumFailsWithChecksumAndKeepsTheBytes]' passed (0.004 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testAFailureToStartOrToSubscribeFailsTheFetch]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testAFailureToStartOrToSubscribeFailsTheFetch]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testAFetchThatFailedResumesWithTheFilesItStored]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testAFetchThatFailedResumesWithTheFilesItStored]' passed (0.008 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testAnUnusableDescriptorFailsWithChecksum]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testAnUnusableDescriptorFailsWithChecksum]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testARequestTheClientCancelledEndsTheStreamWithCancellation]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testARequestTheClientCancelledEndsTheStreamWithCancellation]' passed (0.004 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testARetryRequestsOnlyTheFilesThatAreNotStored]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testARetryRequestsOnlyTheFilesThatAreNotStored]' passed (0.006 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testAvailabilityIsDownloadingWhileAFetchRuns]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testAvailabilityIsDownloadingWhileAFetchRuns]' passed (0.007 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testBytesTheStoreRejectedFailWithChecksumAndNothingIsStored]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testBytesTheStoreRejectedFailWithChecksumAndNothingIsStored]' passed (0.003 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testClientErrorsMapToTheFourBoundaryErrors]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testClientErrorsMapToTheFourBoundaryErrors]' passed (0.018 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testDownloadedBytesThatAreNotTheDescribedOnesAreDeletedBeforeFailingWithChecksum]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testDownloadedBytesThatAreNotTheDescribedOnesAreDeletedBeforeFailingWithChecksum]' passed (0.004 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testFetchDownloadsWhatIsMissingAndEndsWithAvailable]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testFetchDownloadsWhatIsMissingAndEndsWithAvailable]' passed (0.007 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testFetchIsANoOpWhenEveryFileIsStoredAndVerified]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testFetchIsANoOpWhenEveryFileIsStoredAndVerified]' passed (0.005 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testOlderBytesAreReplacedWhenTheCatalogAnnouncesNewContent]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testOlderBytesAreReplacedWhenTheCatalogAnnouncesNewContent]' passed (0.006 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testProgressCountsEveryFileAndNeverFalls]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testProgressCountsEveryFileAndNeverFalls]' passed (0.006 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testStoredBytesThatContradictTheDescriptorAreDeletedBeforeFailingWithChecksum]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testStoredBytesThatContradictTheDescriptorAreDeletedBeforeFailingWithChecksum]' passed (0.004 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testTheModelFilesOfACustomMappingAreRequestedUnderItsIdentifiers]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testTheModelFilesOfACustomMappingAreRequestedUnderItsIdentifiers]' passed (0.005 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testTheOtherRequestsAreWithdrawnBeforeAMismatchedDownloadIsDeleted]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.FetchTests testTheOtherRequestsAreWithdrawnBeforeAMismatchedDownloadIsDeleted]' passed (0.002 seconds).
+Test Suite 'FetchTests' passed at 2026-11-17 17:23:45.986.
+	 Executed 18 tests, with 0 failures (0 unexpected) in 0.100 (0.101) seconds
+Test Suite 'PlanAndLaneTests' started at 2026-11-17 17:23:45.986.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testABlobURLYieldsTheHashItIsNamedBy]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testABlobURLYieldsTheHashItIsNamedBy]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testALaneIsRefusedOnlyOnAUsableNetworkItMayNotUse]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testALaneIsRefusedOnlyOnAUsableNetworkItMayNotUse]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testALaneRepeatsTheEnginesPermissions]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testALaneRepeatsTheEnginesPermissions]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testAllowCellularTakesTheMostUrgentLaneThatMayUseExpensiveNetworks]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testAllowCellularTakesTheMostUrgentLaneThatMayUseExpensiveNetworks]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testAnotherRevisionMapsToOtherIdentifiersAndAnotherDirectory]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testAnotherRevisionMapsToOtherIdentifiersAndAnotherDirectory]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testAnUppercaseChecksumIsAccepted]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testAnUppercaseChecksumIsAccepted]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testByteCountsNeverFallAndStopAtTheFileSize]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testByteCountsNeverFallAndStopAtTheFileSize]' passed (0.001 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testCollidingNamesAreRefused]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testCollidingNamesAreRefused]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testDifferentContentMappedToOneAssetIsRefused]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testDifferentContentMappedToOneAssetIsRefused]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testNestedNamesBecomePathComponents]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testNestedNamesBecomePathComponents]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testNeverHasNoLane]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testNeverHasNoLane]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testOtherNamesYieldNoHash]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testOtherNamesYieldNoHash]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testProgressOfOneContentIsCreditedToEveryFileThatHasIt]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testProgressOfOneContentIsCreditedToEveryFileThatHasIt]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testTheDefaultIdentifierNamesTheModelTheRevisionAndTheFile]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testTheDefaultIdentifierNamesTheModelTheRevisionAndTheFile]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testTheDirectoryNameDependsOnTheFiles]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testTheDirectoryNameDependsOnTheFiles]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testTheDirectoryNameIsOneSafePathComponent]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testTheDirectoryNameIsOneSafePathComponent]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testTheDirectoryNameNeverStartsWithADot]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testTheDirectoryNameNeverStartsWithADot]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testTwoNamesMappedToOneAssetOfTheSameContentShareIt]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testTwoNamesMappedToOneAssetOfTheSameContentShareIt]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testUnusableDescriptorsAreRefused]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testUnusableDescriptorsAreRefused]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testWifiOnlyHasNoLaneUnderTheDefaultNetworkPolicy]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testWifiOnlyHasNoLaneUnderTheDefaultNetworkPolicy]' passed (0.000 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testWifiOnlyTakesTheMostUrgentLaneThatStaysOffExpensiveNetworks]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PlanAndLaneTests testWifiOnlyTakesTheMostUrgentLaneThatStaysOffExpensiveNetworks]' passed (0.000 seconds).
+Test Suite 'PlanAndLaneTests' passed at 2026-11-17 17:23:45.992.
+	 Executed 21 tests, with 0 failures (0 unexpected) in 0.005 (0.006) seconds
+Test Suite 'PolicyTests' started at 2026-11-17 17:23:45.992.
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testAllowCellularAsksOnTheUserInitiatedLane]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testAllowCellularAsksOnTheUserInitiatedLane]' passed (0.010 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testAllowCellularKeepsDownloadingOnACellularNetwork]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testAllowCellularKeepsDownloadingOnACellularNetwork]' passed (0.007 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testAnUnusablePathIsLeftForTheClientToReportAsOffline]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testAnUnusablePathIsLeftForTheClientToReportAsOffline]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testLowDataModeFailsWithPolicyOnALaneThatMayNotUseIt]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testLowDataModeFailsWithPolicyOnALaneThatMayNotUseIt]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testLowPowerModeFailsWithPolicyOnALaneTheEngineParksInIt]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testLowPowerModeFailsWithPolicyOnALaneTheEngineParksInIt]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testNeverDownloadsNothingAndFailsWithPolicyWhenAFileIsMissing]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testNeverDownloadsNothingAndFailsWithPolicyWhenAFileIsMissing]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testNeverEndsWithAvailableWhenEveryFileIsStored]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testNeverEndsWithAvailableWhenEveryFileIsStored]' passed (0.006 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testNeverLeavesOlderBytesStoredAndFailsWithPolicy]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testNeverLeavesOlderBytesStoredAndFailsWithPolicy]' passed (0.004 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testWifiOnlyAsksOnTheLaneTheHostKeepsOffExpensiveNetworks]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testWifiOnlyAsksOnTheLaneTheHostKeepsOffExpensiveNetworks]' passed (0.015 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testWifiOnlyDownloadsNothingWhenNoLaneStaysOffExpensiveNetworks]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testWifiOnlyDownloadsNothingWhenNoLaneStaysOffExpensiveNetworks]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testWifiOnlyFailsWithPolicyOnACellularNetworkAndWithdrawsItsRequests]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testWifiOnlyFailsWithPolicyOnACellularNetworkAndWithdrawsItsRequests]' passed (0.002 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testWifiOnlyStopsWhenTheNetworkTurnsCellularDuringTheDownload]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.PolicyTests testWifiOnlyStopsWhenTheNetworkTurnsCellularDuringTheDownload]' passed (0.003 seconds).
+Test Suite 'PolicyTests' passed at 2026-11-17 17:23:46.049.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.055 (0.056) seconds
+Test Suite 'RealClientTests' started at 2026-11-17 17:23:46.049.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testACatalogThatPublishesOtherBytesThanTheDescriptorIsPurged]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testACatalogThatPublishesOtherBytesThanTheDescriptorIsPurged]' passed (0.842 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAFetchThatFailedResumesWithTheFilesTheStoreKept]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAFetchThatFailedResumesWithTheFilesTheStoreKept]' passed (0.924 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAHostPurgeMakesTheModelMissingAndRemovesTheDirectory]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAHostPurgeMakesTheModelMissingAndRemovesTheDirectory]' passed (1.062 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAllowCellularDownloadsOnACellularNetwork]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAllowCellularDownloadsOnACellularNetwork]' passed (0.799 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAModelIsDownloadedVerifiedPinnedAndLinked]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAModelIsDownloadedVerifiedPinnedAndLinked]' passed (0.921 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAnAssetTheCatalogDoesNotListFailsWithChecksum]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAnAssetTheCatalogDoesNotListFailsWithChecksum]' passed (0.065 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAnOriginWithoutANetworkPathFailsWithOffline]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAnOriginWithoutANetworkPathFailsWithOffline]' passed (0.546 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAnUnsatisfiedPathFailsWithOffline]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAnUnsatisfiedPathFailsWithOffline]' passed (0.568 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testASecondFetchRequestsNothing]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testASecondFetchRequestsNothing]' passed (0.848 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAVolumeWithoutRoomFailsWithDiskFull]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testAVolumeWithoutRoomFailsWithDiskFull]' passed (0.758 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testBytesThatDoNotMatchTheCatalogChecksumAreNeverStored]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testBytesThatDoNotMatchTheCatalogChecksumAreNeverStored]' passed (0.808 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testCancellingTheReaderCancelsTheTransfer]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testCancellingTheReaderCancelsTheTransfer]' passed (0.567 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testDefaultNetworkPolicyCannotServeWifiOnly]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testDefaultNetworkPolicyCannotServeWifiOnly]' passed (0.024 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testEvictDeletesTheFilesFromTheStore]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testEvictDeletesTheFilesFromTheStore]' passed (1.334 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testTheModelIsAvailableAfterARelaunchWithoutAnyRequest]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testTheModelIsAvailableAfterARelaunchWithoutAnyRequest]' passed (0.902 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testTwoStreamsShareOneTransferPerFile]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testTwoStreamsShareOneTransferPerFile]' passed (0.920 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testWifiOnlyOnACellularNetworkSendsNoRequest]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testWifiOnlyOnACellularNetworkSendsNoRequest]' passed (0.052 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testWifiOnlyOnTheBulkLaneReportsWholeFiles]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testWifiOnlyOnTheBulkLaneReportsWholeFiles]' passed (1.085 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testWifiOnlyRequestsCarryTheSystemEnforcedRestriction]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testWifiOnlyRequestsCarryTheSystemEnforcedRestriction]' passed (0.815 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testWifiOnlyStopsItsTransferWhenTheNetworkTurnsCellular]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.RealClientTests testWifiOnlyStopsItsTransferWhenTheNetworkTurnsCellular]' passed (0.650 seconds).
+Test Suite 'RealClientTests' passed at 2026-11-17 17:24:00.545.
+	 Executed 20 tests, with 0 failures (0 unexpected) in 14.492 (14.496) seconds
+Test Suite 'SharingAndEvictionTests' started at 2026-11-17 17:24:00.545.
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testAFetchAfterACancelledOneStartsAgain]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testAFetchAfterACancelledOneStartsAgain]' passed (0.008 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testAStreamThatAttachesLaterStartsAtTheLatestProgress]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testAStreamThatAttachesLaterStartsAtTheLatestProgress]' passed (0.008 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testCancellingOneOfTwoReadersKeepsTheFetchRunning]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testCancellingOneOfTwoReadersKeepsTheFetchRunning]' passed (0.017 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testCancellingTheOnlyReaderWithdrawsEveryRequest]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testCancellingTheOnlyReaderWithdrawsEveryRequest]' passed (0.003 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testConcurrentFetchesOfOneAssetShareTheirRequests]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testConcurrentFetchesOfOneAssetShareTheirRequests]' passed (0.007 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testDroppingAStreamWithoutReadingItWithdrawsEveryRequest]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testDroppingAStreamWithoutReadingItWithdrawsEveryRequest]' passed (0.018 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testEvictingOneRevisionLeavesTheOtherAvailable]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testEvictingOneRevisionLeavesTheOtherAvailable]' passed (0.027 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testEvictLetsARejectedModelBeFetchedAgain]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testEvictLetsARejectedModelBeFetchedAgain]' passed (0.041 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testEvictRemovesThePinsTheFilesAndTheDirectory]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testEvictRemovesThePinsTheFilesAndTheDirectory]' passed (0.017 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testEvictReportsAPurgeThatFailed]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testEvictReportsAPurgeThatFailed]' passed (0.008 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testEvictStopsARunningFetch]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testEvictStopsARunningFetch]' passed (0.007 seconds).
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testFetchesUnderDifferentPoliciesAskOnTheirOwnLanes]' started.
+Test Case '-[ZTronSearchEngineAssetKitTests.SharingAndEvictionTests testFetchesUnderDifferentPoliciesAskOnTheirOwnLanes]' passed (0.011 seconds).
+Test Suite 'SharingAndEvictionTests' passed at 2026-11-17 17:24:00.718.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.171 (0.173) seconds
+Test Suite 'ZTronSearchEngineAssetKitTests.xctest' passed at 2026-11-17 17:24:00.718.
+	 Executed 103 tests, with 0 failures (0 unexpected) in 14.921 (14.933) seconds
+Test Suite 'All tests' passed at 2026-11-17 17:24:00.718.
+	 Executed 103 tests, with 0 failures (0 unexpected) in 14.921 (14.934) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.
+EXIT: 0
+END 2026-11-17 17:24:01
